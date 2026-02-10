@@ -7,73 +7,64 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-# Default token permissions (avoid 403s when creating check runs for test results)
 permissions:
   contents: read
-  checks: write
-  pull-requests: read
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Build & Test (.NET)
+  python:
+    name: Lint & Test (Python)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          fetch-depth: 0
+          python-version: "3.11"
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+      - name: Install (if requirements exist)
+        shell: bash
+        run: |
+          set -e
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Lint (if configured)
+        shell: bash
+        run: |
+          set -e
+          if command -v ruff >/dev/null 2>&1; then ruff check .; fi
+          if command -v black >/dev/null 2>&1; then black --check .; fi
+
+      - name: Test (if tests exist)
+        shell: bash
+        run: |
+          set -e
+          if [ -d tests ]; then pytest -q; else echo "No tests/ yet"; fi
+
+  docker:
+    name: Build container
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build
+        uses: docker/build-push-action@v6
         with:
-          dotnet-version: "9.0.x"
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.fsproj', '**/Directory.Packages.props', '**/NuGet.config', '**/*.sln') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore
-        run: dotnet restore
-
-      - name: Build (Release)
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Test (Release) + TRX
-        run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
-
-      # Always upload raw TRX so you can download even if publish fails
-      - name: Upload test artifacts (TRX)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-trx
-          path: |
-            **/test-results.trx
-            **/*.trx
-          if-no-files-found: warn
-          retention-days: 7
-
-      # Publish results as a Check Run in GitHub UI
-      # Note: PRs from forks may still be restricted; we gate to pushes to avoid 403 in those cases.
-      - name: Publish unit test results
-        if: always() && (github.event_name == 'push' || github.event.pull_request.head.repo.fork == false)
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: |
-            **/test-results.trx
-            **/*.trx
-          check_name: "Test Results"
-          comment_mode: off
-          # Optional: turn on annotations in the Checks UI
-          # annotate_notice: true
-          # annotate_warning: true
-          # annotate_failure: true
+          context: .
+          push: false
+          tags: pim-auto:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
