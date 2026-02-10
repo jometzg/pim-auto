@@ -215,15 +215,15 @@ If you see import errors:
 # Make sure you're in the project root
 cd /path/to/pim-auto
 
-# Install in development mode
-pip install -e .
+# Install in development mode with dev dependencies
+pip install -e ".[dev]"
 ```
 
 ### Missing dependencies
 
 ```bash
 # Reinstall all dependencies
-pip install -r requirements-dev.txt
+pip install -e ".[dev]"
 ```
 
 ### Tests not found
