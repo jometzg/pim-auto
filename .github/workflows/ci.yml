@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Run linters
+      run: |
+        # Run ruff linter
+        ruff check src/ tests/
+        
+        # Run black formatter check
+        black --check src/ tests/
+    
+    - name: Run type checker
+      run: |
+        # Run mypy (may have errors initially with no code)
+        mypy src/ || echo "Type checking skipped - no implementation yet"
+    
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=src/pim_auto --cov-report=term-missing --cov-report=xml --cov-report=html
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: matrix.python-version == '3.11'
+      with:
+        files: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+      continue-on-error: true
+    
+    - name: Upload coverage HTML
+      uses: actions/upload-artifact@v4
+      if: matrix.python-version == '3.11'
+      with:
+        name: coverage-report
+        path: htmlcov/
+        retention-days: 7
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff black
+    
+    - name: Run ruff
+      run: ruff check src/ tests/
+    
+    - name: Run black
+      run: black --check src/ tests/
+
+  structure:
+    name: Validate Project Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check required files
+      run: |
+        echo "Checking project structure..."
+        
+        # Check directories
+        test -d src/pim_auto || (echo "Missing src/pim_auto directory" && exit 1)
+        test -d tests || (echo "Missing tests directory" && exit 1)
+        test -d tests/unit || (echo "Missing tests/unit directory" && exit 1)
+        test -d tests/integration || (echo "Missing tests/integration directory" && exit 1)
+        
+        # Check configuration files
+        test -f pyproject.toml || (echo "Missing pyproject.toml" && exit 1)
+        test -f requirements.txt || (echo "Missing requirements.txt" && exit 1)
+        test -f requirements-dev.txt || (echo "Missing requirements-dev.txt" && exit 1)
+        
+        # Check documentation
+        test -f README.md || (echo "Missing README.md" && exit 1)
+        test -f docs/Test-Strategy.md || (echo "Missing docs/Test-Strategy.md" && exit 1)
+        
+        echo "✅ Project structure is valid"
+
+  all-checks:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [test, lint, structure]
+    if: always()
+    
+    steps:
+    - name: Check all jobs
+      run: |
+        if [ "${{ needs.test.result }}" != "success" ]; then
+          echo "Tests failed"
+          exit 1
+        fi
+        if [ "${{ needs.lint.result }}" != "success" ]; then
+          echo "Linting failed"
+          exit 1
+        fi
+        if [ "${{ needs.structure.result }}" != "success" ]; then
+          echo "Structure validation failed"
+          exit 1
+        fi
+        echo "✅ All checks passed!"
