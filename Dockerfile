@@ -22,5 +22,5 @@ USER appuser
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "print('alive')" || exit 1
 
-# Default command (will be replaced in Slice 1 with actual application)
-CMD ["python", "-c", "print('PIM Auto container - not yet implemented')"]
+# Default command - run the PIM Auto application
+CMD ["python", "-m", "pim_auto.main"]
