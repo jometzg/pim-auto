@@ -3,8 +3,6 @@
 import os
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from pim_auto.monitoring.app_insights import ApplicationInsightsMonitor
 
 
@@ -23,11 +21,15 @@ class TestApplicationInsightsMonitor:
     def test_monitor_enabled_with_connection_string(self):
         """Test monitor is enabled when connection string provided."""
         conn_string = (
-            "InstrumentationKey=test-key;IngestionEndpoint=https://test.monitor.azure.com/"
+            "InstrumentationKey=test-key;"
+            "IngestionEndpoint=https://test.monitor.azure.com/"
         )
 
         with patch("pim_auto.monitoring.app_insights.metrics_exporter"):
-            monitor = ApplicationInsightsMonitor(connection_string=conn_string, enabled=True)
+            monitor = ApplicationInsightsMonitor(
+                connection_string=conn_string,
+                enabled=True,
+            )
 
             assert monitor.connection_string == conn_string
 
@@ -45,7 +47,9 @@ class TestApplicationInsightsMonitor:
         monitor = ApplicationInsightsMonitor(connection_string=conn_string)
 
         # Mock the stats recorder
-        with patch.object(monitor.stats_recorder, "new_measurement_map") as mock_mmap_factory:
+        with patch.object(
+            monitor.stats_recorder, "new_measurement_map"
+        ) as mock_mmap_factory:
             mock_mmap = MagicMock()
             mock_mmap_factory.return_value = mock_mmap
 
@@ -61,7 +65,9 @@ class TestApplicationInsightsMonitor:
         conn_string = "InstrumentationKey=test-key"
         monitor = ApplicationInsightsMonitor(connection_string=conn_string)
 
-        with patch.object(monitor.stats_recorder, "new_measurement_map") as mock_mmap_factory:
+        with patch.object(
+            monitor.stats_recorder, "new_measurement_map"
+        ) as mock_mmap_factory:
             mock_mmap = MagicMock()
             mock_mmap_factory.return_value = mock_mmap
 
@@ -76,7 +82,9 @@ class TestApplicationInsightsMonitor:
         conn_string = "InstrumentationKey=test-key"
         monitor = ApplicationInsightsMonitor(connection_string=conn_string)
 
-        with patch.object(monitor.stats_recorder, "new_measurement_map") as mock_mmap_factory:
+        with patch.object(
+            monitor.stats_recorder, "new_measurement_map"
+        ) as mock_mmap_factory:
             mock_mmap = MagicMock()
             mock_mmap_factory.return_value = mock_mmap
 
@@ -91,7 +99,9 @@ class TestApplicationInsightsMonitor:
         conn_string = "InstrumentationKey=test-key"
         monitor = ApplicationInsightsMonitor(connection_string=conn_string)
 
-        with patch.object(monitor.stats_recorder, "new_measurement_map") as mock_mmap_factory:
+        with patch.object(
+            monitor.stats_recorder, "new_measurement_map"
+        ) as mock_mmap_factory:
             mock_mmap = MagicMock()
             mock_mmap_factory.return_value = mock_mmap
 
@@ -110,7 +120,10 @@ class TestApplicationInsightsMonitor:
 
     @patch("pim_auto.monitoring.app_insights.metrics_exporter")
     @patch("pim_auto.monitoring.app_insights.AzureLogHandler")
-    def test_get_log_handler_when_enabled(self, mock_handler_class, mock_exporter):
+    def test_get_log_handler_when_enabled(
+            self, mock_handler_class,
+            mock_exporter,
+            ):
         """Test log handler creation when enabled."""
         conn_string = "InstrumentationKey=test-key"
         monitor = ApplicationInsightsMonitor(connection_string=conn_string)
@@ -121,7 +134,9 @@ class TestApplicationInsightsMonitor:
         handler = monitor.get_log_handler()
 
         assert handler is not None
-        mock_handler_class.assert_called_once_with(connection_string=conn_string)
+        mock_handler_class.assert_called_once_with(
+            connection_string=conn_string
+        )
         mock_handler.setLevel.assert_called_once()
 
     @patch("pim_auto.monitoring.app_insights.metrics_exporter")
@@ -140,7 +155,8 @@ class TestApplicationInsightsMonitor:
         """Test monitor reads connection string from environment."""
         conn_string = "InstrumentationKey=env-key"
 
-        with patch.dict(os.environ, {"APPLICATIONINSIGHTS_CONNECTION_STRING": conn_string}):
+        env_var = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        with patch.dict(os.environ, {env_var: conn_string}):
             with patch("pim_auto.monitoring.app_insights.metrics_exporter"):
                 monitor = ApplicationInsightsMonitor()
 

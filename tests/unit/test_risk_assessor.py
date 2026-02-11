@@ -100,7 +100,9 @@ def test_assess_partially_aligned(mock_openai: Mock) -> None:
 
 def test_assess_unknown(mock_openai: Mock) -> None:
     """Test unknown assessment."""
-    mock_openai.generate_completion.return_value = "Unable to determine alignment."
+    mock_openai.generate_completion.return_value = (
+        "Unable to determine alignment."
+    )
 
     assessor = RiskAssessor(mock_openai)
     activities = []

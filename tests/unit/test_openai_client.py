@@ -13,7 +13,10 @@ def mock_credential() -> Mock:
     return Mock()
 
 
-def test_openai_client_init(mock_credential: Mock, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_openai_client_init(
+        mock_credential: Mock,
+        monkeypatch: pytest.MonkeyPatch
+        ) -> None:
     """Test OpenAI client initialization."""
     mock_token_provider = Mock()
     mock_get_token_provider = Mock(return_value=mock_token_provider)
@@ -23,7 +26,10 @@ def test_openai_client_init(mock_credential: Mock, monkeypatch: pytest.MonkeyPat
     )
 
     mock_azure_openai = Mock()
-    monkeypatch.setattr("src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai)
+    monkeypatch.setattr(
+        "src.pim_auto.azure.openai_client.AzureOpenAI",
+        mock_azure_openai,
+    )
 
     client = OpenAIClient(
         endpoint="https://test.openai.azure.com",
@@ -64,7 +70,10 @@ def test_generate_completion_success(
     )
 
     mock_azure_openai = Mock(return_value=mock_client_instance)
-    monkeypatch.setattr("src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai)
+    monkeypatch.setattr(
+        "src.pim_auto.azure.openai_client.AzureOpenAI",
+        mock_azure_openai
+    )
 
     client = OpenAIClient(
         endpoint="https://test.openai.azure.com",
@@ -74,7 +83,11 @@ def test_generate_completion_success(
     )
 
     messages = [{"role": "user", "content": "test message"}]
-    result = client.generate_completion(messages, temperature=0.7, max_tokens=2000)
+    result = client.generate_completion(
+        messages,
+        temperature=0.7,
+        max_tokens=2000
+    )
 
     assert result == "Generated response"
     mock_client_instance.chat.completions.create.assert_called_once_with(
@@ -87,7 +100,9 @@ def test_generate_completion_exception(
 ) -> None:
     """Test completion generation with exception."""
     mock_client_instance = Mock()
-    mock_client_instance.chat.completions.create.side_effect = Exception("API Error")
+    mock_client_instance.chat.completions.create.side_effect = (
+        Exception("API Error")
+    )
 
     mock_token_provider = Mock()
     mock_get_token_provider = Mock(return_value=mock_token_provider)
@@ -97,7 +112,10 @@ def test_generate_completion_exception(
     )
 
     mock_azure_openai = Mock(return_value=mock_client_instance)
-    monkeypatch.setattr("src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai)
+    monkeypatch.setattr(
+        "src.pim_auto.azure.openai_client.AzureOpenAI",
+        mock_azure_openai
+    )
 
     client = OpenAIClient(
         endpoint="https://test.openai.azure.com",
