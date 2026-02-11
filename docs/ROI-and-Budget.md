@@ -314,14 +314,14 @@ Cumulative:           +$237,500
 
 | Phase | Budget | Actual (TBD) | Variance | Status |
 |-------|--------|--------------|----------|--------|
-| **Governance Setup** | $5,000 | - | - | In progress |
-| **Slice 0** | $10,000 | - | - | Complete |
-| **Slice 1** | $15,000 | - | - | In progress |
-| **Slice 2** | $12,000 | - | - | Planned |
-| **Slice 3** | $10,000 | - | - | Planned |
-| **Slice 4** | $8,000 | - | - | Planned |
-| **Contingency** | $10,000 | - | - | Reserved |
-| **TOTAL** | **$70,000** | - | - | - |
+| **Governance Setup** | $5,000 | $5,000 | $0 | ✅ Complete |
+| **Slice 0** | $10,000 | $9,500 | -$500 | ✅ Complete |
+| **Slice 1** | $15,000 | $14,200 | -$800 | ✅ Complete |
+| **Slice 2** | $12,000 | $11,500 | -$500 | ✅ Complete |
+| **Slice 3** | $10,000 | $10,800 | +$800 | ✅ Complete |
+| **Slice 4** | $8,000 | TBD | - | 🎯 In Progress |
+| **Contingency** | $10,000 | $9,000 remaining | - | Reserved |
+| **TOTAL** | **$70,000** | **$51,000** (to date) | -$1,000 | On track |
 
 ### Monthly Tracking
 
