@@ -81,10 +81,7 @@ def test_assess_partially_aligned(mock_openai: Mock) -> None:
     assessor = RiskAssessor(mock_openai)
     activities = [
         ActivityEvent(
-            timestamp=datetime(
-                2026, 2, 10, 10, 30,
-                tzinfo=timezone.utc
-            ),
+            timestamp=datetime(2026, 2, 10, 10, 30, tzinfo=timezone.utc),
             operation_name="Create Storage Account",
             resource_type="Microsoft.Storage/storageAccounts",
             resource_name="mystorageaccount",
@@ -137,9 +134,7 @@ def test_assess_alignment_variations(mock_openai: Mock) -> None:
     test_cases = [
         ("NOT ALIGNED (with spaces)", AlignmentLevel.NOT_ALIGNED),
         ("The answer is ALIGNED.", AlignmentLevel.ALIGNED),
-        ("PARTIALLY ALIGNED with some concerns", 
-         AlignmentLevel.PARTIALLY_ALIGNED
-        ),
+        ("PARTIALLY ALIGNED with some concerns", AlignmentLevel.PARTIALLY_ALIGNED),
         ("partially_aligned", AlignmentLevel.PARTIALLY_ALIGNED),
     ]
 
@@ -153,10 +148,7 @@ def test_assess_alignment_variations(mock_openai: Mock) -> None:
 
 def test_risk_assessment_dataclass() -> None:
     """Test RiskAssessment dataclass."""
-    assessment = RiskAssessment(
-        level=AlignmentLevel.ALIGNED,
-        explanation="Test explanation"
-    )
+    assessment = RiskAssessment(level=AlignmentLevel.ALIGNED, explanation="Test explanation")
 
     assert assessment.level == AlignmentLevel.ALIGNED
     assert assessment.explanation == "Test explanation"
