@@ -1,4 +1,5 @@
 """Unit tests for interactive CLI."""
+
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
@@ -136,6 +137,7 @@ def test_format_time_ago_minutes(cli):
     """Test formatting time ago in minutes for recent times."""
     # Create a timestamp very close to now
     from datetime import timedelta
+
     now = datetime.now(timezone.utc)
     timestamp = now - timedelta(minutes=30)
     result = cli._format_time_ago(timestamp)
@@ -200,7 +202,9 @@ def test_handle_alignment_query_without_user(cli):
     # Should handle gracefully
 
 
-def test_handle_alignment_query_with_context(cli, sample_activations, sample_activities, sample_assessment):
+def test_handle_alignment_query_with_context(
+    cli, sample_activations, sample_activities, sample_assessment
+):
     """Test alignment query using context from previous query."""
     cli.activations = sample_activations
     cli.current_user = "user1@example.com"
@@ -213,7 +217,9 @@ def test_handle_alignment_query_with_context(cli, sample_activations, sample_act
     cli.risk_assessor.assess_alignment.assert_called_once()
 
 
-def test_handle_alignment_query_explicit_user(cli, sample_activations, sample_activities, sample_assessment):
+def test_handle_alignment_query_explicit_user(
+    cli, sample_activations, sample_activities, sample_assessment
+):
     """Test alignment query with explicit user email."""
     cli.activations = sample_activations
     cli.activity_correlator.get_user_activities = Mock(return_value=sample_activities)
@@ -264,9 +270,7 @@ def test_handle_assess_continues_on_error(cli):
     ]
 
     cli.activations = activations
-    cli.activity_correlator.get_user_activities = Mock(
-        side_effect=[Exception("Error"), []]
-    )
+    cli.activity_correlator.get_user_activities = Mock(side_effect=[Exception("Error"), []])
 
     # Should not raise, continue processing
     cli._assess_all_users()
@@ -290,7 +294,9 @@ def test_run_keyboard_interrupt(cli):
     assert result == 0
 
 
-def test_handle_assess_command_with_user(cli, sample_activations, sample_activities, sample_assessment):
+def test_handle_assess_command_with_user(
+    cli, sample_activations, sample_activities, sample_assessment
+):
     """Test assess command with specific user."""
     cli.activations = sample_activations
     cli.activity_correlator.get_user_activities = Mock(return_value=sample_activities)

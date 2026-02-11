@@ -1,4 +1,5 @@
 """Batch mode runner for automated PIM activity scanning."""
+
 import logging
 from datetime import datetime, timezone
 from pathlib import Path

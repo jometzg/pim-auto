@@ -1,4 +1,5 @@
 """Tests for configuration module."""
+
 import pytest
 
 from src.pim_auto.config import Config

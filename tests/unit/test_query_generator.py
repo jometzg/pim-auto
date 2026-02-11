@@ -1,4 +1,5 @@
 """Tests for query generator module."""
+
 from unittest.mock import Mock
 
 import pytest
@@ -21,7 +22,9 @@ def test_generate_query_success(mock_openai: Mock) -> None:
     """
 
     generator = QueryGenerator(mock_openai)
-    query = generator.generate_query("Find PIM activations in the last 24 hours")
+    query = generator.generate_query(
+        "Find PIM activations in the last 24 hours"
+    )
 
     assert "AuditLogs" in query
     assert "where" in query
@@ -46,7 +49,7 @@ def test_generate_query_retry_on_invalid(mock_openai: Mock) -> None:
     """Test query generation retries on invalid response."""
     mock_openai.generate_completion.side_effect = [
         "This is not a valid KQL query",  # First attempt fails
-        "AuditLogs | where TimeGenerated > ago(24h)",  # Second attempt succeeds
+        "AuditLogs | where TimeGenerated > ago(24h)",  # Second attempt succeed
     ]
 
     generator = QueryGenerator(mock_openai)
@@ -78,7 +81,9 @@ def test_generate_query_exception_handling(mock_openai: Mock) -> None:
 
 def test_generate_query_temperature(mock_openai: Mock) -> None:
     """Test that query generation uses lower temperature."""
-    mock_openai.generate_completion.return_value = "AuditLogs | where TimeGenerated > ago(24h)"
+    mock_openai.generate_completion.return_value = (
+        "AuditLogs | where TimeGenerated > ago(24h)"
+    )
 
     generator = QueryGenerator(mock_openai)
     generator.generate_query("test")

@@ -1,4 +1,5 @@
 """Azure Log Analytics client wrapper."""
+
 import logging
 from datetime import timedelta
 from typing import Any, Dict, List, Optional, Union

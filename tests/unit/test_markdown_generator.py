@@ -1,4 +1,5 @@
 """Unit tests for markdown report generator."""
+
 from datetime import datetime, timezone
 
 import pytest
@@ -23,14 +24,18 @@ def sample_activations():
             user_email="user1@example.com",
             role_name="Contributor",
             activation_reason="Add storage account",
-            activation_time=datetime(2026, 2, 11, 10, 0, 0, tzinfo=timezone.utc),
+            activation_time=datetime(
+                2026, 2, 11, 10, 0, 0,
+                tzinfo=timezone.utc),
             duration_hours=24,
         ),
         PIMActivation(
             user_email="user2@example.com",
             role_name="Owner",
             activation_reason="Fix network issue",
-            activation_time=datetime(2026, 2, 11, 12, 0, 0, tzinfo=timezone.utc),
+            activation_time=datetime(
+                2026, 2, 11, 12, 0, 0,
+                tzinfo=timezone.utc),
             duration_hours=24,
         ),
     ]
@@ -42,7 +47,9 @@ def sample_activities():
     return {
         "user1@example.com": [
             ActivityEvent(
-                timestamp=datetime(2026, 2, 11, 10, 30, 0, tzinfo=timezone.utc),
+                timestamp=datetime(
+                    2026, 2, 11, 10, 30, 0,
+                    tzinfo=timezone.utc),
                 operation_name="Create Storage Account",
                 resource_name="storage123",
                 resource_type="Microsoft.Storage/storageAccounts",
@@ -53,7 +60,9 @@ def sample_activities():
         ],
         "user2@example.com": [
             ActivityEvent(
-                timestamp=datetime(2026, 2, 11, 12, 15, 0, tzinfo=timezone.utc),
+                timestamp=datetime(
+                    2026, 2, 11, 12, 15, 0,
+                    tzinfo=timezone.utc),
                 operation_name="Update NSG Rule",
                 resource_name="nsg-prod",
                 resource_type="Microsoft.Network/networkSecurityGroups",
@@ -71,11 +80,15 @@ def sample_assessments():
     return {
         "user1@example.com": RiskAssessment(
             level=AlignmentLevel.ALIGNED,
-            explanation="User created storage account as stated in activation reason.",
+            explanation=(
+                "User created storage account as stated in activation reason."
+            ),
         ),
         "user2@example.com": RiskAssessment(
             level=AlignmentLevel.NOT_ALIGNED,
-            explanation="User modified NSG which is not related to stated reason.",
+            explanation=(
+                "User modified NSG which is not related to stated reason."
+            ),
         ),
     }
 
@@ -126,7 +139,11 @@ def test_generate_report_empty(generator):
 
 
 def test_generate_report_to_file(
-    generator, sample_activations, sample_activities, sample_assessments, tmp_path
+    generator,
+    sample_activations,
+    sample_activities,
+    sample_assessments,
+    tmp_path,
 ):
     """Test writing report to file."""
     output_path = tmp_path / "report.md"
@@ -190,14 +207,24 @@ def test_format_assessment(generator, sample_assessments):
 def test_alignment_level_emojis(generator):
     """Test alignment level emoji mapping."""
     assert generator._get_alignment_emoji(AlignmentLevel.ALIGNED) == "✅"
-    assert generator._get_alignment_emoji(AlignmentLevel.PARTIALLY_ALIGNED) == "⚠️"
+    assert (
+        generator._get_alignment_emoji(
+            AlignmentLevel.PARTIALLY_ALIGNED) == "⚠️"
+    )
     assert generator._get_alignment_emoji(AlignmentLevel.NOT_ALIGNED) == "❌"
     assert generator._get_alignment_emoji(AlignmentLevel.UNKNOWN) == "❓"
 
 
-def test_generate_summary_counts(generator, sample_activations, sample_assessments):
+def test_generate_summary_counts(
+        generator,
+        sample_activations,
+        sample_assessments,
+):
     """Test summary generation with correct counts."""
-    summary = generator._generate_summary(sample_activations, sample_assessments)
+    summary = generator._generate_summary(
+        sample_activations,
+        sample_assessments,
+        )
 
     assert "**Total PIM Activations**: 2" in summary
     assert "**Aligned**: 1" in summary
@@ -212,7 +239,11 @@ def test_generate_activations_table_empty(generator):
     assert "No activations found" in table
 
 
-def test_detailed_analysis_without_assessment(generator, sample_activations, sample_activities):
+def test_detailed_analysis_without_assessment(
+        generator,
+        sample_activations,
+        sample_activities,
+):
     """Test detailed analysis when assessment is missing."""
     # Create assessments dict with only one user
     assessments = {

@@ -1,4 +1,5 @@
 """Tests for Log Analytics client module."""
+
 from datetime import datetime, timezone
 from unittest.mock import Mock
 
@@ -26,7 +27,8 @@ def test_log_analytics_client_init(
     """Test Log Analytics client initialization."""
     mock_client_class = Mock()
     monkeypatch.setattr(
-        "src.pim_auto.azure.log_analytics.LogsQueryClient", mock_client_class
+        "src.pim_auto.azure.log_analytics.LogsQueryClient",
+        mock_client_class
     )
 
     client = LogAnalyticsClient(
@@ -49,8 +51,14 @@ def test_execute_query_success(
     # Columns are now strings directly, not objects with .name
     mock_table.columns = ["TimeGenerated", "UserEmail"]
     mock_table.rows = [
-        [datetime(2026, 2, 10, 10, 0, 0, tzinfo=timezone.utc), "test@example.com"],
-        [datetime(2026, 2, 10, 11, 0, 0, tzinfo=timezone.utc), "user@example.com"],
+        [
+            datetime(2026, 2, 10, 10, 0, 0, tzinfo=timezone.utc),
+            "test@example.com"
+        ],
+        [
+            datetime(2026, 2, 10, 11, 0, 0, tzinfo=timezone.utc),
+            "user@example.com"
+        ],
     ]
 
     mock_response.tables = [mock_table]
@@ -61,7 +69,8 @@ def test_execute_query_success(
 
     mock_client_class = Mock(return_value=mock_client_instance)
     monkeypatch.setattr(
-        "src.pim_auto.azure.log_analytics.LogsQueryClient", mock_client_class
+        "src.pim_auto.azure.log_analytics.LogsQueryClient",
+        mock_client_class
     )
 
     client = LogAnalyticsClient(
@@ -70,7 +79,9 @@ def test_execute_query_success(
     results = client.execute_query("test query", timespan="P1D")
 
     assert len(results) == 2
-    assert results[0]["TimeGenerated"] == datetime(2026, 2, 10, 10, 0, 0, tzinfo=timezone.utc)
+    assert results[0]["TimeGenerated"] == datetime(
+        2026, 2, 10, 10, 0, 0, tzinfo=timezone.utc
+    )
     assert results[0]["UserEmail"] == "test@example.com"
     assert results[1]["UserEmail"] == "user@example.com"
 
@@ -87,7 +98,8 @@ def test_execute_query_failure(
 
     mock_client_class = Mock(return_value=mock_client_instance)
     monkeypatch.setattr(
-        "src.pim_auto.azure.log_analytics.LogsQueryClient", mock_client_class
+        "src.pim_auto.azure.log_analytics.LogsQueryClient",
+        mock_client_class
     )
 
     client = LogAnalyticsClient(
@@ -103,11 +115,14 @@ def test_execute_query_exception(
 ) -> None:
     """Test query execution with exception."""
     mock_client_instance = Mock()
-    mock_client_instance.query_workspace.side_effect = Exception("API Error")
+    mock_client_instance.query_workspace.side_effect = Exception(
+        "API Error"
+    )
 
     mock_client_class = Mock(return_value=mock_client_instance)
     monkeypatch.setattr(
-        "src.pim_auto.azure.log_analytics.LogsQueryClient", mock_client_class
+        "src.pim_auto.azure.log_analytics.LogsQueryClient",
+        mock_client_class
     )
 
     client = LogAnalyticsClient(

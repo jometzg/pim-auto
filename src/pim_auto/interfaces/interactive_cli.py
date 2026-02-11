@@ -1,4 +1,5 @@
 """Interactive CLI for PIM activity audit."""
+
 import logging
 from datetime import datetime, timezone
 from typing import Optional
@@ -180,9 +181,7 @@ Type 'scan' to detect PIM activations, ask questions, or 'exit' to quit.
             return
 
         self.current_user = user_email
-        self.console.print(
-            f"\n[bold]📋 Activities for {user_email} during elevation:[/bold]\n"
-        )
+        self.console.print(f"\n[bold]📋 Activities for {user_email} during elevation:[/bold]\n")
 
         try:
             # Get activities
@@ -205,15 +204,11 @@ Type 'scan' to detect PIM activations, ask questions, or 'exit' to quit.
                 resource_type = activity.resource_type or "[unknown type]"
                 resource_group = activity.resource_group or "[no resource group]"
                 subscription = activity.subscription_id or "[no subscription]"
-                self.console.print(
-                    f"[cyan][{time_str}][/cyan] {operation}"
-                )
+                self.console.print(f"[cyan][{time_str}][/cyan] {operation}")
                 self.console.print(
                     f"  Resource: {resource} | RG: {resource_group} | Provider: {resource_type}"
                 )
-                self.console.print(
-                    f"  Subscription: {subscription}\n"
-                )
+                self.console.print(f"  Subscription: {subscription}\n")
 
         except Exception as e:
             logger.error(f"Failed to get activities: {e}", exc_info=True)
@@ -234,9 +229,7 @@ Type 'scan' to detect PIM activations, ask questions, or 'exit' to quit.
             user_email = self.current_user
 
         if not user_email:
-            self.console.print(
-                "[yellow]Please specify a user or query activities first.[/yellow]"
-            )
+            self.console.print("[yellow]Please specify a user or query activities first.[/yellow]")
             return
 
         # Find activation for this user
@@ -291,15 +284,11 @@ Type 'scan' to detect PIM activations, ask questions, or 'exit' to quit.
     def _assess_all_users(self) -> None:
         """Assess alignment for all scanned users."""
         if not self.activations:
-            self.console.print(
-                "[yellow]No activations to assess. Run 'scan' first.[/yellow]"
-            )
+            self.console.print("[yellow]No activations to assess. Run 'scan' first.[/yellow]")
             return
 
         for activation in self.activations:
-            self.console.print(
-                f"\n[bold]🔍 Assessing {activation.user_email}...[/bold]"
-            )
+            self.console.print(f"\n[bold]🔍 Assessing {activation.user_email}...[/bold]")
 
             try:
                 end_time = datetime.now()

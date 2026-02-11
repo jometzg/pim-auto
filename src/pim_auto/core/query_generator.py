@@ -1,4 +1,5 @@
 """KQL query generation using Azure OpenAI."""
+
 import logging
 from typing import Any
 
@@ -32,8 +33,7 @@ class QueryGenerator:
 
                 # Basic validation: check if it looks like KQL
                 if any(
-                    keyword in query
-                    for keyword in ["AuditLogs", "AzureActivity", "where", "|"]
+                    keyword in query for keyword in ["AuditLogs", "AzureActivity", "where", "|"]
                 ):
                     logger.info(f"Generated query on attempt {attempt + 1}")
                     return query.strip()
