@@ -2,21 +2,32 @@
 import logging
 import sys
 
+import click
+
 from pim_auto.azure.auth import get_azure_credential
 from pim_auto.azure.log_analytics import LogAnalyticsClient
 from pim_auto.azure.openai_client import OpenAIClient
 from pim_auto.config import Config
 from pim_auto.core.pim_detector import PIMDetector
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 
-def main() -> int:
+@click.command()
+@click.option(
+    "--log-level",
+    type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR"], case_sensitive=False),
+    default="INFO",
+    help="Set the logging level",
+)
+def main(log_level: str) -> int:
     """Main application entry point."""
+    # Configure logging with specified level
+    logging.basicConfig(
+        level=getattr(logging, log_level.upper()),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        force=True,
+    )
     try:
         # Load and validate configuration
         logger.info("Loading configuration...")
@@ -62,4 +73,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main())  # pylint: disable=no-value-for-parameter

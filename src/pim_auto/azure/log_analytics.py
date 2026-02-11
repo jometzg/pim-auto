@@ -22,7 +22,7 @@ class LogAnalyticsClient:
         """Execute KQL query and return results."""
         try:
             # Convert string timespan to timedelta if needed
-            actual_timespan: Optional[timedelta] = None
+            actual_timespan: timedelta
             if timespan is not None:
                 if isinstance(timespan, str):
                     # Parse ISO 8601 duration format (e.g., "P1D" = 1 day, "PT24H" = 24 hours)
@@ -36,6 +36,13 @@ class LogAnalyticsClient:
                         actual_timespan = timedelta(days=1)  # Default
                 else:
                     actual_timespan = timespan
+            else:
+                # Default to 24 hours if no timespan provided
+                actual_timespan = timedelta(hours=24)
+
+            # Log query at DEBUG level
+            logger.debug(f"Executing Log Analytics query:\n{query}")
+            logger.debug(f"Timespan: {actual_timespan}")
 
             response = self.client.query_workspace(
                 workspace_id=self.workspace_id, query=query, timespan=actual_timespan
@@ -44,10 +51,11 @@ class LogAnalyticsClient:
             if response.status == LogsQueryStatus.SUCCESS:
                 results = []
                 for table in response.tables:
-                    column_names = [str(col.name) for col in table.columns]  # type: ignore[attr-defined]
+                    column_names = [str(col) for col in table.columns]
                     for row in table.rows:
                         row_dict = dict(zip(column_names, row, strict=False))
                         results.append(row_dict)
+                logger.debug(f"Query returned {len(results)} rows")
                 return results
             else:
                 logger.error(f"Query failed with status: {response.status}")

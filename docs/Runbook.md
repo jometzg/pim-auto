@@ -145,6 +145,21 @@ export PIM_SCAN_HOURS=24  # Default: 24 hours
 
 **Verify configuration**:
 ```bash
+
+Or for Windows PowerShell:
+```powershell
+# Azure OpenAI configuration
+$env:AZURE_OPENAI_ENDPOINT = "https://your-resource.openai.azure.com/"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4o"  # Your deployment name
+$env:AZURE_OPENAI_API_VERSION = "2024-02-15-preview"  # Or latest
+
+# Log Analytics configuration
+$env:LOG_ANALYTICS_WORKSPACE_ID = "your-workspace-id"
+
+# Optional: Override default scan window
+$env:PIM_SCAN_HOURS = "24"  # Default: 24 hours
+```
+
 # Check environment variables are set
 env | grep AZURE
 env | grep LOG_ANALYTICS
