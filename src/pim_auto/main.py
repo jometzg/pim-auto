@@ -51,9 +51,9 @@ logger = logging.getLogger(__name__)
     help="Show detailed health check (only for health mode)",
 )
 def main(
-    mode: str, 
-    log_level: str, 
-    output: Optional[Path], 
+    mode: str,
+    log_level: str,
+    output: Optional[Path],
     hours: Optional[int],
     detailed_health: bool,
 ) -> int:
