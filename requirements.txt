@@ -1,17 +1,12 @@
-# Python dependencies for PIM Auto
-# Install with: pip install -r requirements.txt
-
-# Azure SDK dependencies
+# Azure SDK
 azure-identity>=1.15.0
 azure-monitor-query>=1.3.0
-openai>=1.10.0
+openai>=1.10.0  # Azure OpenAI support
 
-# Async support
-aiohttp>=3.9.0
+# CLI
+rich>=13.7.0  # For interactive CLI formatting
+click>=8.1.7  # Command-line argument parsing
 
-# CLI and formatting
-click>=8.1.0
-rich>=13.7.0
-
-# Utilities
-python-dateutil>=2.8.2
+# Logging and monitoring
+opencensus-ext-azure>=1.1.13  # Application Insights
+python-json-logger>=2.0.7  # Structured logging
