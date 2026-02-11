@@ -154,7 +154,7 @@ class MarkdownGenerator:
         if activities:
             for activity in activities:
                 time_str = activity.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-                lines.append(f"- `{time_str}` {activity.operation} - {activity.resource_name}")
+                lines.append(f"- `{time_str}` {activity.operation_name} - {activity.resource_name}")
         else:
             lines.append("No activities found.")
 
@@ -224,7 +224,7 @@ class MarkdownGenerator:
         lines = []
         for activity in activities:
             time_str = activity.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-            lines.append(f"[{time_str}] {activity.operation} - {activity.resource_name}")
+            lines.append(f"[{time_str}] {activity.operation_name} - {activity.resource_name}")
 
         return "\n".join(lines)
 

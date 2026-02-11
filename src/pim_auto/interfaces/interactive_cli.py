@@ -45,7 +45,7 @@ class InteractiveCLI:
         self.pim_detector = PIMDetector(log_analytics)
         self.activity_correlator = ActivityCorrelator(log_analytics)
         self.risk_assessor = RiskAssessor(openai_client)
-        self.query_generator = QueryGenerator(openai_client, log_analytics)
+        self.query_generator = QueryGenerator(openai_client)
         self.markdown_generator = MarkdownGenerator()
 
         # Conversation context
@@ -202,7 +202,7 @@ Type 'scan' to detect PIM activations, ask questions, or 'exit' to quit.
             for activity in activities:
                 time_str = activity.timestamp.strftime("%Y-%m-%d %H:%M:%S")
                 self.console.print(
-                    f"[cyan][{time_str}][/cyan] {activity.operation} - {activity.resource_name}"
+                    f"[cyan][{time_str}][/cyan] {activity.operation_name} - {activity.resource_name}"
                 )
 
         except Exception as e:
