@@ -173,16 +173,27 @@ The Standish Group Chaos Report identifies top factors for project failure. This
 
 ## Risk Register
 
-### Active Risks (Pre-Slice 1)
+### Active Risks (Slice 4 Execution)
 
 | Risk ID | Description | Category | Probability | Impact | Severity | Owner | Mitigation |
 |---------|-------------|----------|-------------|--------|----------|-------|------------|
-| R-001 | Azure OpenAI service quota insufficient for testing | Technical | Medium | High | **High** | DevOps | Pre-allocate quota, test in dev tenant |
-| R-002 | Log Analytics workspace lacks required audit logs | Technical | Low | High | **Medium** | DevOps | Verify AuditLogs and AzureActivity tables exist |
-| R-003 | Implementation agent generates non-functional code | Technical | Medium | Medium | **Medium** | Developer | Human review, unit tests, fix as needed |
-| R-004 | Timeline delay due to overestimated AI productivity | Schedule | Medium | Medium | **Medium** | Prog Lead | Track actual vs. expected, adjust estimates |
-| R-005 | Security vulnerability in dependencies (transitive) | Security | Low | Critical | **Medium** | Developer | Dependency scanning, regular updates |
-| R-006 | Scope creep from "nice-to-have" features | Scope | Medium | Medium | **Medium** | Prog Lead | Strict scope control, backlog for extras |
+| R-007 | E2E tests fail to validate production-ready behavior | Testing | Low | Medium | **Medium** | QA | Comprehensive test scenarios, realistic staging data |
+| R-008 | Performance targets not met in validation testing | Performance | Low | Medium | **Medium** | Developer | Optimize queries, adjust targets with Tech Lead approval |
+| R-009 | Security issues discovered late in Slice 4 review | Security | Low | High | **Medium** | Tech Lead | Continuous security scanning, early review processes |
+| R-010 | UAT reveals critical usability or functionality gaps | User Acceptance | Low | High | **Medium** | Product Owner | Early UAT planning, representative user participation |
+| R-011 | Documentation inaccuracies delay production approval | Documentation | Medium | Low | **Low** | Tech Lead | Parallel documentation validation, command testing |
+| R-012 | Executive Sponsor delays final production approval | Governance | Low | Medium | **Low** | Prog Lead | Pre-scheduled approval meeting, clear success criteria |
+
+### Historical Risks (Closed)
+
+| Risk ID | Description | Status | Date Closed | Outcome |
+|---------|-------------|--------|-------------|---------|
+| R-001 | Azure OpenAI service quota insufficient | ✅ Closed | Slice 1 | Pre-allocated quota, no issues |
+| R-002 | Log Analytics workspace lacks required audit logs | ✅ Closed | Slice 1 | Verified in dev tenant |
+| R-003 | Implementation agent generates non-functional code | ✅ Closed | Slice 2 | Human review effective, quality maintained |
+| R-004 | Timeline delay due to overestimated AI productivity | ✅ Closed | Slice 3 | AI productivity met expectations (42% gain) |
+| R-005 | Security vulnerability in dependencies | ✅ Closed | Slice 3 | Continuous scanning, zero critical issues |
+| R-006 | Scope creep from "nice-to-have" features | ✅ Closed | Slice 3 | Strict scope control maintained |
 
 **Legend**:
 - **Probability**: Low (<20%), Medium (20-50%), High (>50%)
