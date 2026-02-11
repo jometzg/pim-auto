@@ -12,6 +12,9 @@ from pim_auto.azure.openai_client import OpenAIClient
 from pim_auto.config import Config
 from pim_auto.interfaces.batch_runner import BatchRunner
 from pim_auto.interfaces.interactive_cli import InteractiveCLI
+from pim_auto.monitoring.app_insights import ApplicationInsightsMonitor
+from pim_auto.monitoring.health import HealthCheck
+from pim_auto.monitoring.logging import StructuredLogger
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +22,9 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option(
     "--mode",
-    type=click.Choice(["interactive", "batch"], case_sensitive=False),
+    type=click.Choice(["interactive", "batch", "health"], case_sensitive=False),
     default="interactive",
-    help="Run mode: interactive (default) or batch",
+    help="Run mode: interactive (default), batch, or health check",
 )
 @click.option(
     "--log-level",
@@ -41,29 +44,44 @@ logger = logging.getLogger(__name__)
     default=None,
     help="Number of hours to scan (overrides config default)",
 )
+@click.option(
+    "--detailed-health",
+    is_flag=True,
+    default=False,
+    help="Show detailed health check (only for health mode)",
+)
 def main(
-    mode: str, log_level: str, output: Optional[Path], hours: Optional[int]
+    mode: str, 
+    log_level: str, 
+    output: Optional[Path], 
+    hours: Optional[int],
+    detailed_health: bool,
 ) -> int:
     """Main application entry point."""
-    # Configure logging with specified level
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        force=True,
-    )
-    
-    # Reduce noise from Azure SDK authentication chain
-    # Only show warnings/errors from these unless user explicitly wants DEBUG
-    if log_level.upper() != "DEBUG":
-        logging.getLogger("azure.identity").setLevel(logging.WARNING)
-        logging.getLogger("azure.core.pipeline.policies").setLevel(logging.WARNING)
-        logging.getLogger("urllib3").setLevel(logging.WARNING)
-    
     try:
         # Load and validate configuration
-        logger.info("Loading configuration...")
         config = Config.from_environment()
         config.validate()
+        
+        # Configure structured logging
+        monitor = None
+        if config.enable_app_insights and config.app_insights_connection_string:
+            monitor = ApplicationInsightsMonitor(
+                connection_string=config.app_insights_connection_string,
+                enabled=True,
+            )
+            app_insights_handler = monitor.get_log_handler()
+        else:
+            app_insights_handler = None
+        
+        StructuredLogger.setup(
+            log_level=log_level,
+            json_format=config.structured_logging,
+            include_app_insights=config.enable_app_insights,
+            app_insights_handler=app_insights_handler,
+        )
+        
+        logger.info("Loading configuration...")
         logger.info("Configuration loaded successfully")
 
         # Initialize Azure clients
@@ -82,9 +100,22 @@ def main(
         )
 
         logger.info("Azure clients initialized successfully")
+        
+        # Initialize health check
+        health_check = HealthCheck(
+            workspace_id=config.log_analytics_workspace_id,
+            credential=credential,
+            openai_endpoint=config.azure_openai_endpoint,
+        )
 
         # Route to appropriate interface
-        if mode.lower() == "batch":
+        if mode.lower() == "health":
+            logger.info("Running health check")
+            health_result = health_check.check_health(detailed=detailed_health)
+            import json
+            print(json.dumps(health_result, indent=2))
+            return 0 if health_result["status"] in ["healthy", "degraded"] else 1
+        elif mode.lower() == "batch":
             logger.info("Running in batch mode")
             runner = BatchRunner(log_analytics, openai_client, config)
             return runner.run(hours=hours, output_path=output)

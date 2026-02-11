@@ -19,6 +19,11 @@ class Config:
     default_scan_hours: int = 24
     log_level: str = "INFO"
     batch_output_path: Optional[str] = None
+    
+    # Monitoring settings
+    enable_app_insights: bool = True
+    app_insights_connection_string: Optional[str] = None
+    structured_logging: bool = False  # JSON format logging
 
     @classmethod
     def from_environment(cls) -> "Config":
@@ -44,6 +49,9 @@ class Config:
             default_scan_hours=int(os.getenv("DEFAULT_SCAN_HOURS", "24")),
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             batch_output_path=os.getenv("BATCH_OUTPUT_PATH"),
+            enable_app_insights=os.getenv("ENABLE_APP_INSIGHTS", "true").lower() == "true",
+            app_insights_connection_string=os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"),
+            structured_logging=os.getenv("STRUCTURED_LOGGING", "false").lower() == "true",
         )
 
     def validate(self) -> None:

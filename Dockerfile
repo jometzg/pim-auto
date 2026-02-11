@@ -18,9 +18,9 @@ COPY src/ ./src/
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Health check (basic)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "print('alive')" || exit 1
+# Health check (uses new health check endpoint)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -m pim_auto.main --mode health || exit 1
 
 # Default command - run the PIM Auto application
 CMD ["python", "-m", "pim_auto.main"]

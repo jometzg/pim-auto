@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "baseName": {
+      "value": "pimauto"
+    },
+    "environment": {
+      "value": "dev"
+    },
+    "logAnalyticsWorkspaceId": {
+      "value": "YOUR_LOG_ANALYTICS_WORKSPACE_ID"
+    },
+    "azureOpenAIEndpoint": {
+      "value": "https://YOUR_OPENAI_RESOURCE.openai.azure.com/"
+    },
+    "azureOpenAIDeployment": {
+      "value": "gpt-4o"
+    },
+    "containerImageTag": {
+      "value": "latest"
+    },
+    "defaultScanHours": {
+      "value": 24
+    },
+    "enableAppInsights": {
+      "value": true
+    }
+  }
+}

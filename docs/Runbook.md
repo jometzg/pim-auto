@@ -833,16 +833,20 @@ tail -f /var/log/pim-auto/app.log
 
 ### B. Environment Variables Reference
 
-Expected environment variables (once implemented):
+Expected environment variables:
 
 | Variable | Required | Example | Description |
 |----------|----------|---------|-------------|
 | `AZURE_OPENAI_ENDPOINT` | Yes | `https://myopenai.openai.azure.com/` | Azure OpenAI endpoint URL |
 | `AZURE_OPENAI_DEPLOYMENT` | Yes | `gpt-4o` | GPT-4o deployment name |
-| `AZURE_OPENAI_API_VERSION` | Yes | `2024-02-15-preview` | API version |
+| `AZURE_OPENAI_API_VERSION` | No | `2024-02-15-preview` | API version (default shown) |
 | `LOG_ANALYTICS_WORKSPACE_ID` | Yes | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` | Workspace GUID |
-| `PIM_SCAN_HOURS` | No | `24` | Scan window in hours (default: 24) |
+| `DEFAULT_SCAN_HOURS` | No | `24` | Scan window in hours (default: 24) |
 | `LOG_LEVEL` | No | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `STRUCTURED_LOGGING` | No | `false` | Enable JSON format logging |
+| `ENABLE_APP_INSIGHTS` | No | `true` | Enable Application Insights monitoring |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | No | - | App Insights connection string |
+| `AZURE_CLIENT_ID` | No | - | Managed identity client ID (for Azure deployment) |
 
 ### C. Azure RBAC Roles Reference
 
@@ -852,6 +856,7 @@ Required roles for the application identity:
 |------|-------|---------|
 | Log Analytics Reader | Log Analytics Workspace | Read AuditLogs and AzureActivity |
 | Cognitive Services OpenAI User | Azure OpenAI resource | Generate queries and assess alignment |
+| AcrPull | Container Registry | Pull container images (production deployment) |
 
 ### D. Useful Azure CLI Commands
 
@@ -873,6 +878,244 @@ az identity show --ids <identity-resource-id>
 
 ---
 
+## Production Deployment Operations
+
+### Container Deployment (Azure Container Apps)
+
+**Check deployment status**:
+```bash
+RESOURCE_GROUP="rg-pimauto-prod"
+CONTAINER_APP_NAME="pimauto-prod-app"  # Adjust to your deployment
+
+# Check app status
+az containerapp show \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --query "properties.{status:runningStatus,fqdn:configuration.ingress.fqdn}" \
+  --output table
+
+# Check revision status
+az containerapp revision list \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --output table
+```
+
+**View container logs**:
+```bash
+# View recent logs
+az containerapp logs show \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --tail 50 \
+  --follow
+
+# View logs from specific revision
+az containerapp logs show \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --revision REVISION_NAME \
+  --tail 100
+```
+
+**Restart application**:
+```bash
+# Restart current revision
+az containerapp revision restart \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --revision REVISION_NAME
+```
+
+**Scale application**:
+```bash
+# Scale to specific replica count
+az containerapp update \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --min-replicas 1 \
+  --max-replicas 3
+
+# Scale to zero (for dev environments)
+az containerapp update \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --min-replicas 0 \
+  --max-replicas 1
+```
+
+### Health Check Operations
+
+**Run health check**:
+```bash
+# Basic health check (returns JSON)
+python -m pim_auto.main --mode health
+
+# Detailed health check (includes component status)
+python -m pim_auto.main --mode health --detailed-health
+
+# From container (using az containerapp exec)
+az containerapp exec \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --command "python -m pim_auto.main --mode health --detailed-health"
+```
+
+**Expected health check output**:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-02-11T10:30:00",
+  "uptime_seconds": 3600,
+  "components": {
+    "authentication": {
+      "status": "healthy",
+      "message": "Azure authentication configured"
+    },
+    "log_analytics": {
+      "status": "healthy",
+      "message": "Log Analytics configured",
+      "workspace_id": "xxxxxxxx..."
+    },
+    "openai": {
+      "status": "healthy",
+      "message": "Azure OpenAI configured",
+      "endpoint": "https://your-openai..."
+    }
+  }
+}
+```
+
+### Monitoring with Application Insights
+
+**Access Application Insights**:
+```bash
+# Get Application Insights details
+APP_INSIGHTS_NAME=$(az monitor app-insights component list \
+  --resource-group $RESOURCE_GROUP \
+  --query "[?contains(name, 'pimauto')].name" \
+  --output tsv)
+
+# Get instrumentation key
+az monitor app-insights component show \
+  --app $APP_INSIGHTS_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --query instrumentationKey
+```
+
+**Query application logs** (using KQL):
+```bash
+# Run KQL query via CLI
+az monitor app-insights query \
+  --app $APP_INSIGHTS_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --analytics-query "traces | where timestamp > ago(1h) | project timestamp, message, severityLevel | order by timestamp desc | take 20"
+```
+
+**Common monitoring queries** (run in Azure Portal > Application Insights > Logs):
+
+```kql
+// View recent errors
+traces
+| where severityLevel >= 3  // Error and Critical
+| where timestamp > ago(24h)
+| project timestamp, message, severityLevel, customDimensions
+| order by timestamp desc
+
+// PIM activations detected over time
+customMetrics
+| where name == "pim_activations_detected"
+| where timestamp > ago(7d)
+| summarize sum(value) by bin(timestamp, 1h)
+| render timechart
+
+// Query performance
+customMetrics
+| where name == "query_duration_ms"
+| where timestamp > ago(24h)
+| summarize avg(value), max(value), min(value) by bin(timestamp, 1h)
+| render timechart
+
+// OpenAI API call rate
+customMetrics
+| where name == "openai_api_calls"
+| where timestamp > ago(24h)
+| summarize count() by bin(timestamp, 1h)
+| render timechart
+
+// Application health check results
+traces
+| where message contains "health check"
+| where timestamp > ago(24h)
+| project timestamp, message, severityLevel
+| order by timestamp desc
+```
+
+### Alert Management
+
+**View active alerts**:
+```bash
+# List all alert rules
+az monitor metrics alert list \
+  --resource-group $RESOURCE_GROUP \
+  --output table
+
+# Show specific alert details
+az monitor metrics alert show \
+  --name pimauto-high-error-rate \
+  --resource-group $RESOURCE_GROUP
+
+# View alert history (fired alerts)
+az monitor activity-log list \
+  --resource-group $RESOURCE_GROUP \
+  --offset 7d \
+  --query "[?contains(eventName.localizedValue, 'Alert')]" \
+  --output table
+```
+
+**Temporarily disable alerts** (during maintenance):
+```bash
+# Disable error rate alert
+az monitor metrics alert update \
+  --name pimauto-high-error-rate \
+  --resource-group $RESOURCE_GROUP \
+  --enabled false
+
+# Re-enable after maintenance
+az monitor metrics alert update \
+  --name pimauto-high-error-rate \
+  --resource-group $RESOURCE_GROUP \
+  --enabled true
+```
+
+### Structured Logging
+
+**Enable JSON logging** (for log aggregation platforms):
+```bash
+# Set environment variable for JSON output
+az containerapp update \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --set-env-vars STRUCTURED_LOGGING=true
+
+# Restart to apply
+az containerapp revision restart \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP
+```
+
+**JSON log format**:
+```json
+{
+  "asctime": "2026-02-11T10:30:15",
+  "name": "pim_auto.core.pim_detector",
+  "levelname": "INFO",
+  "message": "Found 3 PIM activations in last 24 hours"
+}
+```
+
+---
+
 ## Document Maintenance
 
 This runbook should be updated when:
@@ -882,5 +1125,5 @@ This runbook should be updated when:
 - Configuration requirements change
 - Common issues are discovered
 
-**Last Updated**: 2026-02-10  
-**Next Review**: After initial implementation
+**Last Updated**: 2026-02-11 (Slice 3: Production Readiness)  
+**Next Review**: After Slice 4 validation
