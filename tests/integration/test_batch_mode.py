@@ -1,6 +1,6 @@
 """Integration tests for batch mode."""
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -29,14 +29,14 @@ def sample_data():
             user_email="user1@example.com",
             role_name="Contributor",
             activation_reason="Add storage account",
-            activation_time=datetime(2026, 2, 11, 10, 0, 0),
+            activation_time=datetime(2026, 2, 11, 10, 0, 0, tzinfo=timezone.utc),
             duration_hours=24,
         ),
         PIMActivation(
             user_email="user2@example.com",
             role_name="Owner",
             activation_reason="Fix network issue",
-            activation_time=datetime(2026, 2, 11, 12, 0, 0),
+            activation_time=datetime(2026, 2, 11, 12, 0, 0, tzinfo=timezone.utc),
             duration_hours=24,
         ),
     ]
@@ -44,20 +44,24 @@ def sample_data():
     activities_by_user = {
         "user1@example.com": [
             ActivityEvent(
-                timestamp=datetime(2026, 2, 11, 10, 30, 0),
+                timestamp=datetime(2026, 2, 11, 10, 30, 0, tzinfo=timezone.utc),
                 operation_name="Create Storage Account",
                 resource_name="storage123",
                 resource_type="Microsoft.Storage/storageAccounts",
                 status="Success",
+                resource_group="rg-prod",
+                subscription_id="sub-123",
             )
         ],
         "user2@example.com": [
             ActivityEvent(
-                timestamp=datetime(2026, 2, 11, 12, 15, 0),
+                timestamp=datetime(2026, 2, 11, 12, 15, 0, tzinfo=timezone.utc),
                 operation_name="Update NSG Rule",
                 resource_name="nsg-prod",
                 resource_type="Microsoft.Network/networkSecurityGroups",
                 status="Success",
+                resource_group="rg-prod",
+                subscription_id="sub-123",
             )
         ],
     }
@@ -126,7 +130,7 @@ def test_batch_mode_end_to_end(mock_env, sample_data, tmp_path):
     assert output_file.exists()
 
     # Verify report content
-    content = output_file.read_text()
+    content = output_file.read_text(encoding="utf-8")
     assert "# PIM Activity Audit Report" in content
     assert "## Executive Summary" in content
     assert "user1@example.com" in content

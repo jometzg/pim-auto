@@ -1,5 +1,5 @@
 """Unit tests for interactive CLI."""
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
 import pytest
@@ -45,7 +45,7 @@ def sample_activations():
             user_email="user1@example.com",
             role_name="Contributor",
             activation_reason="Add storage account",
-            activation_time=datetime(2026, 2, 11, 10, 0, 0),
+            activation_time=datetime(2026, 2, 11, 10, 0, 0, tzinfo=timezone.utc),
             duration_hours=24,
         )
     ]
@@ -56,11 +56,13 @@ def sample_activities():
     """Create sample activity events."""
     return [
         ActivityEvent(
-            timestamp=datetime(2026, 2, 11, 10, 30, 0),
+            timestamp=datetime(2026, 2, 11, 10, 30, 0, tzinfo=timezone.utc),
             operation_name="Create Storage Account",
             resource_name="storage123",
             resource_type="Microsoft.Storage/storageAccounts",
             status="Success",
+            resource_group="rg-production",
+            subscription_id="abc123-def456",
         )
     ]
 
@@ -123,8 +125,8 @@ def test_find_activation_by_user_case_insensitive(cli, sample_activations):
 
 def test_format_time_ago_hours(cli):
     """Test formatting time ago in hours."""
-    now = datetime.now()
-    timestamp = datetime(now.year, now.month, now.day, now.hour - 2, 0, 0)
+    now = datetime.now(timezone.utc)
+    timestamp = datetime(now.year, now.month, now.day, now.hour - 2, 0, 0, tzinfo=timezone.utc)
     result = cli._format_time_ago(timestamp)
     assert "hour" in result
     assert "ago" in result
@@ -134,7 +136,7 @@ def test_format_time_ago_minutes(cli):
     """Test formatting time ago in minutes for recent times."""
     # Create a timestamp very close to now
     from datetime import timedelta
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     timestamp = now - timedelta(minutes=30)
     result = cli._format_time_ago(timestamp)
     assert "minute" in result or "hour" in result

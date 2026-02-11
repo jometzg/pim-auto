@@ -1,6 +1,6 @@
 """Markdown report generator for PIM Auto application."""
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -49,13 +49,13 @@ class MarkdownGenerator:
         if output_path:
             logger.info(f"Writing report to {output_path}")
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(report)
+            output_path.write_text(report, encoding="utf-8")
 
         return report
 
     def _generate_header(self) -> str:
         """Generate report header."""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
         return f"# PIM Activity Audit Report\n\n**Generated**: {timestamp}"
 
     def _generate_summary(
@@ -197,7 +197,7 @@ class MarkdownGenerator:
         lines = [f"Found {len(activations)} elevated user(s):"]
         for i, activation in enumerate(activations, 1):
             # Calculate time ago
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             time_diff = now - activation.activation_time
             hours_ago = int(time_diff.total_seconds() / 3600)
 

@@ -113,17 +113,17 @@ source venv/bin/activate
 
 **Install dependencies**:
 ```bash
-# Once requirements.txt exists
-pip install -r requirements.txt
+# Install package with all dependencies (including dev dependencies)
+pip install -e .[dev]
 
-# Or if using pyproject.toml
+# Or for production-only dependencies
 pip install -e .
 ```
 
 **Verify installation**:
 ```bash
 pip list
-# Should show azure-identity, azure-monitor-query, openai, etc.
+# Should show azure-identity, azure-monitor-query, openai, click, rich, etc.
 ```
 
 ### Configuration
@@ -170,7 +170,19 @@ env | grep LOG_ANALYTICS
 #### Interactive Chat Mode (Default)
 
 ```bash
-python main.py
+python -m pim_auto.main
+```
+
+**With logging options**:
+```bash
+# Debug logging (shows all Azure queries and authentication details)
+python -m pim_auto.main --log-level DEBUG
+
+# Info logging (default - recommended for normal use)
+python -m pim_auto.main --log-level INFO
+
+# Custom scan window
+python -m pim_auto.main --hours 48
 ```
 
 Expected behavior:
@@ -180,7 +192,7 @@ Expected behavior:
 
 **Sample session**:
 ```
-$ python main.py
+$ python -m pim_auto.main
 🤖 PIM Activity Audit Agent
 Type 'scan' to detect PIM activations, ask questions, or 'exit' to quit.
 
@@ -192,7 +204,14 @@ Found 2 elevated users:
 
 > What did john.doe@contoso.com do?
 📋 Activities for john.doe@contoso.com during elevation:
-[activity details]
+
+[2026-02-11 10:30:15] Microsoft.Storage/storageAccounts/write
+  Resource: stprod001 | RG: rg-production | Provider: Microsoft.Storage
+  Subscription: abc123-def456-ghi789
+
+[2026-02-11 10:35:22] Microsoft.Storage/storageAccounts/blobServices/containers/write
+  Resource: stprod001/default/data | RG: rg-production | Provider: Microsoft.Storage
+  Subscription: abc123-def456-ghi789
 
 > exit
 👋 Goodbye!
@@ -201,24 +220,37 @@ Found 2 elevated users:
 #### Batch Mode
 
 ```bash
-python main.py --mode batch
+python -m pim_auto.main --mode batch
+```
+
+**With options**:
+```bash
+# Custom output file
+python -m pim_auto.main --mode batch --output pim-report.md
+
+# Custom scan window (48 hours)
+python -m pim_auto.main --mode batch --hours 48 --output report-48h.md
+
+# Debug logging for troubleshooting
+python -m pim_auto.main --mode batch --log-level DEBUG
 ```
 
 Expected behavior:
 - Runs non-interactively
-- Scans last 24 hours
-- Generates Markdown report
+- Scans last 24 hours (or specified hours)
+- Queries only successful Azure operations (ActivityStatusValue == "Success")
+- Generates Markdown report with detailed resource information
 - Exits with status code (0 = success, 1 = failure)
 
 **Capture output**:
 ```bash
-python main.py --mode batch > pim-report-$(date +%Y%m%d).md
+python -m pim_auto.main --mode batch --output pim-report-$(date +%Y%m%d).md
 ```
 
 **Schedule with cron** (Linux/Mac):
 ```bash
 # Add to crontab: Run daily at 6 AM
-0 6 * * * cd /path/to/pim-auto && /path/to/venv/bin/python main.py --mode batch >> /var/log/pim-auto.log 2>&1
+0 6 * * * cd /path/to/pim-auto && /path/to/.venv/bin/python -m pim_auto.main --mode batch --output /var/log/pim-auto-$(date +\%Y\%m\%d).md 2>&1
 ```
 
 ### Testing
@@ -252,6 +284,43 @@ flake8 src/
 # mypy (type checking)
 mypy src/
 ```
+
+### Operational Notes
+
+#### Azure Activity Query Behavior
+
+**Activity Filtering**:
+- AzureActivity queries filter for `ActivityStatusValue == "Success"` only
+- This focuses on completed operations and excludes failed attempts
+- Provides clearer picture of actual changes made during PIM elevation
+
+**Activity Details Collected**:
+- Operation name (e.g., `Microsoft.Storage/storageAccounts/write`)
+- Resource name
+- Resource group
+- Resource provider (e.g., `Microsoft.Storage`, `Microsoft.Network`)
+- Subscription ID
+- Timestamp
+
+**Query Timespan**:
+- Activities are queried from PIM activation time to current time
+- For batch mode, uses the configured scan hours (default: 24)
+- The Azure SDK requires a timespan parameter; it defaults to 24 hours if not specified
+
+#### Log Levels
+
+Use `--log-level` flag to control verbosity:
+
+- **DEBUG**: Shows all Azure SDK internals, authentication attempts, raw queries, and query results. Use for troubleshooting.
+- **INFO** (default): Shows application flow, PIM detections, and activity counts. Recommended for normal use.
+- **WARNING**: Only shows warnings and errors. Use in production when logs are centralized.
+- **ERROR**: Only critical errors. Use when you only care about failures.
+
+Example DEBUG output includes:
+- Authentication chain attempts (managed identity, Azure CLI, etc.)
+- KQL queries sent to Log Analytics
+- Number of rows returned from queries
+- HTTP request details
 
 ### Troubleshooting
 
@@ -318,6 +387,37 @@ az monitor log-analytics query \
   --output table
 ```
 
+#### Issue: "No activities found for user"
+
+**Symptom**: PIM activation detected but "No activities found" when querying user actions
+
+**Possible causes**:
+1. User performed no successful operations (all attempts failed)
+   - Activities are filtered for `ActivityStatusValue == "Success"` only
+2. Log Analytics workspace not receiving AzureActivity logs
+3. User's operations not yet synced to Log Analytics (5-10 min delay possible)
+4. Caller field in AzureActivity doesn't match user's email format
+
+**Debugging**:
+```bash
+# Check if AzureActivity data exists for the user
+az monitor log-analytics query \
+  --workspace <workspace-id> \
+  --analytics-query "AzureActivity | where Caller == 'user@domain.com' | where TimeGenerated > ago(24h) | project TimeGenerated, OperationName, ActivityStatusValue | take 20" \
+  --output table
+
+# Check all status values (including failures)
+az monitor log-analytics query \
+  --workspace <workspace-id> \
+  --analytics-query "AzureActivity | where Caller == 'user@domain.com' | where TimeGenerated > ago(24h) | summarize count() by ActivityStatusValue" \
+  --output table
+```
+
+**Solutions**:
+1. Wait 10-15 minutes after PIM activation for logs to sync
+2. Verify AzureActivity logs are being collected in Log Analytics workspace
+3. If user had failed operations, they won't appear (by design - we focus on successful changes)
+
 #### Issue: "Application hangs in interactive mode"
 
 **Symptom**: No response to user input
@@ -330,19 +430,34 @@ az monitor log-analytics query \
 
 ### Logging
 
-**Expected log locations** (once implemented):
+**Console logging with different levels**:
 
 ```bash
-# Console output (default)
-python main.py --log-level DEBUG
+# Debug output (verbose - all queries, auth details, results)
+python -m pim_auto.main --log-level DEBUG
 
-# File logging (if supported)
-python main.py --log-file /var/log/pim-auto/app.log
+# Info output (default - normal operations)
+python -m pim_auto.main --log-level INFO
+
+# Warning only (minimal output)
+python -m pim_auto.main --log-level WARNING
+
+# Errors only
+python -m pim_auto.main --log-level ERROR
+```
+
+**Redirect to file**:
+```bash
+# Redirect all output to file
+python -m pim_auto.main --log-level DEBUG > app.log 2>&1
+
+# Redirect batch mode output
+python -m pim_auto.main --mode batch --output report.md 2>&1 | tee batch.log
 ```
 
 **View logs**:
 ```bash
-tail -f /var/log/pim-auto/app.log
+tail -f app.log
 
 # Or if using journalctl (systemd)
 journalctl -u pim-auto -f

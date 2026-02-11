@@ -1,5 +1,5 @@
 """Tests for risk assessor module."""
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock
 
 import pytest
@@ -23,11 +23,13 @@ def test_assess_aligned(mock_openai: Mock) -> None:
     assessor = RiskAssessor(mock_openai)
     activities = [
         ActivityEvent(
-            timestamp=datetime(2026, 2, 10, 10, 30),
+            timestamp=datetime(2026, 2, 10, 10, 30, tzinfo=timezone.utc),
             operation_name="Create Storage Account",
             resource_type="Microsoft.Storage/storageAccounts",
             resource_name="mystorageaccount",
             status="Succeeded",
+            resource_group="rg-prod",
+            subscription_id="sub-123",
         )
     ]
 
@@ -48,11 +50,13 @@ def test_assess_not_aligned(mock_openai: Mock) -> None:
     assessor = RiskAssessor(mock_openai)
     activities = [
         ActivityEvent(
-            timestamp=datetime(2026, 2, 10, 10, 30),
+            timestamp=datetime(2026, 2, 10, 10, 30, tzinfo=timezone.utc),
             operation_name="Delete Virtual Machine",
             resource_type="Microsoft.Compute/virtualMachines",
             resource_name="prod-vm-01",
             status="Succeeded",
+            resource_group="rg-prod",
+            subscription_id="sub-123",
         )
     ]
 
@@ -72,11 +76,13 @@ def test_assess_partially_aligned(mock_openai: Mock) -> None:
     assessor = RiskAssessor(mock_openai)
     activities = [
         ActivityEvent(
-            timestamp=datetime(2026, 2, 10, 10, 30),
+            timestamp=datetime(2026, 2, 10, 10, 30, tzinfo=timezone.utc),
             operation_name="Create Storage Account",
             resource_type="Microsoft.Storage/storageAccounts",
             resource_name="mystorageaccount",
             status="Succeeded",
+            resource_group="rg-prod",
+            subscription_id="sub-123",
         )
     ]
 

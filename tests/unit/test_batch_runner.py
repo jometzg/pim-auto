@@ -1,5 +1,5 @@
 """Unit tests for batch runner."""
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -47,7 +47,7 @@ def sample_activations():
             user_email="user1@example.com",
             role_name="Contributor",
             activation_reason="Add storage account",
-            activation_time=datetime(2026, 2, 11, 10, 0, 0),
+            activation_time=datetime(2026, 2, 11, 10, 0, 0, tzinfo=timezone.utc),
             duration_hours=24,
         )
     ]
@@ -58,11 +58,13 @@ def sample_activities():
     """Create sample activity events."""
     return [
         ActivityEvent(
-            timestamp=datetime(2026, 2, 11, 10, 30, 0),
+            timestamp=datetime(2026, 2, 11, 10, 30, 0, tzinfo=timezone.utc),
             operation_name="Create Storage Account",
             resource_name="storage123",
             resource_type="Microsoft.Storage/storageAccounts",
             status="Success",
+            resource_group="rg-prod",
+            subscription_id="sub-123",
         )
     ]
 

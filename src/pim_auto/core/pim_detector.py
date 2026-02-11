@@ -30,11 +30,12 @@ class PIMDetector:
         AuditLogs
         | where TimeGenerated > ago({hours}h)
         | where OperationName == "Add member to role completed (PIM activation)"
+        | extend ReasonValue = tostring(parse_json(tostring(AdditionalDetails[3])).value)
         | project
             TimeGenerated,
             UserEmail = tostring(InitiatedBy.user.userPrincipalName),
             RoleName = tostring(TargetResources[0].displayName),
-            Reason = tostring(TargetResources[0].modifiedProperties[0].newValue)
+            Reason = iff(isempty(ResultDescription), ReasonValue, ResultDescription)
         | order by TimeGenerated desc
         """
 

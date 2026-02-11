@@ -37,6 +37,80 @@ If the PIM activation reason is not aligned with the activities performed during
 - Log Analytics workspace with AuditLogs and AzureActivity tables
 - Azure CLI (for local development)
 
+## Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/jometzg/pim-auto.git
+   cd pim-auto
+   ```
+
+2. **Create and activate a virtual environment**:
+   ```bash
+   # Linux/Mac
+   python3 -m venv .venv
+   source .venv/bin/activate
+   
+   # Windows PowerShell
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   ```
+
+3. **Install the package with dependencies**:
+   ```bash
+   pip install -e .[dev]
+   ```
+
+4. **Configure environment variables**:
+   
+   Create a `.env` file or set environment variables:
+   ```bash
+   # Linux/Mac
+   export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
+   export AZURE_OPENAI_DEPLOYMENT="gpt-4o"
+   export AZURE_OPENAI_API_VERSION="2024-02-15-preview"
+   export LOG_ANALYTICS_WORKSPACE_ID="your-workspace-id"
+   ```
+   
+   Or for Windows PowerShell:
+   ```powershell
+   $env:AZURE_OPENAI_ENDPOINT = "https://your-resource.openai.azure.com/"
+   $env:AZURE_OPENAI_DEPLOYMENT = "gpt-4o"
+   $env:AZURE_OPENAI_API_VERSION = "2024-02-15-preview"
+   $env:LOG_ANALYTICS_WORKSPACE_ID = "your-workspace-id"
+   ```
+
+5. **Authenticate with Azure**:
+   ```bash
+   az login
+   az account show
+   ```
+
+## CLI Options
+
+The application supports several command-line options:
+
+```bash
+python -m pim_auto.main [OPTIONS]
+```
+
+**Options:**
+- `--mode [interactive|batch]` - Run mode (default: interactive)
+- `--log-level [DEBUG|INFO|WARNING|ERROR]` - Logging level (default: INFO)
+- `--output PATH` - Output file path for batch mode report
+- `--hours INTEGER` - Number of hours to scan (overrides config default)
+
+**Examples:**
+```bash
+# Interactive mode with debug logging
+python -m pim_auto.main --log-level DEBUG
+
+# Batch mode with custom scan window and output file
+python -m pim_auto.main --mode batch --hours 48 --output report.md
+
+# Quick scan with info logging
+python -m pim_auto.main --hours 12
+```
 
 ## Usage Examples
 
@@ -56,9 +130,17 @@ Found 2 elevated users:
 > What did john.doe@contoso.com do?
 📋 Activities for john.doe@contoso.com during elevation:
 
-[2026-02-05 10:30:15] Created resource group 'rg-production'
-[2026-02-05 10:35:22] Deployed App Service 'app-web-prod'
-[2026-02-05 11:15:08] Modified Network Security Group rules
+[2026-02-05 10:30:15] Microsoft.Resources/deployments/write
+  Resource: rg-production | RG: rg-production | Provider: Microsoft.Resources
+  Subscription: abc123-def456-ghi789
+
+[2026-02-05 10:35:22] Microsoft.Web/sites/write
+  Resource: app-web-prod | RG: rg-production | Provider: Microsoft.Web
+  Subscription: abc123-def456-ghi789
+
+[2026-02-05 11:15:08] Microsoft.Network/networkSecurityGroups/write
+  Resource: nsg-prod | RG: rg-production | Provider: Microsoft.Network
+  Subscription: abc123-def456-ghi789
 
 > do their activity align with the reason they gave for activation?
 
@@ -71,11 +153,14 @@ Found 2 elevated users:
 ### Batch Mode
 
 ```bash
-python main.py --mode batch
+python -m pim_auto.main --mode batch --output pim-report.md
 ```
 
 Output includes:
 - List of all PIM activations in last 24 hours
-- Complete activity timeline for each elevated user
+- Complete activity timeline for each elevated user (successful operations only)
+- Resource details including subscription, resource group, and provider
 - Markdown-formatted report suitable for logging/alerting
+
+**Note**: Activity queries filter for successful operations only (`ActivityStatusValue == "Success"`) to focus on completed actions.
 

@@ -1,6 +1,6 @@
 """Batch mode runner for automated PIM activity scanning."""
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -74,7 +74,7 @@ class BatchRunner:
                 logger.info(f"Processing {activation.user_email}...")
 
                 # Get activities
-                end_time = datetime.now()
+                end_time = datetime.now(timezone.utc)
                 activities = self.activity_correlator.get_user_activities(
                     user_email=activation.user_email,
                     start_time=activation.activation_time,
@@ -116,7 +116,7 @@ class BatchRunner:
 
     def _generate_empty_report(self) -> str:
         """Generate a report when no activations are found."""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
         return f"""# PIM Activity Audit Report
 
 **Generated**: {timestamp}

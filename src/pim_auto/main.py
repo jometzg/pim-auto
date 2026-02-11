@@ -51,6 +51,14 @@ def main(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         force=True,
     )
+    
+    # Reduce noise from Azure SDK authentication chain
+    # Only show warnings/errors from these unless user explicitly wants DEBUG
+    if log_level.upper() != "DEBUG":
+        logging.getLogger("azure.identity").setLevel(logging.WARNING)
+        logging.getLogger("azure.core.pipeline.policies").setLevel(logging.WARNING)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+    
     try:
         # Load and validate configuration
         logger.info("Loading configuration...")

@@ -1,6 +1,6 @@
 """Interactive CLI for PIM activity audit."""
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from rich.console import Console
@@ -200,8 +200,19 @@ Type 'scan' to detect PIM activations, ask questions, or 'exit' to quit.
             # Display activities
             for activity in activities:
                 time_str = activity.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                operation = activity.operation_name or "[no operation]"
+                resource = activity.resource_name or "[no resource]"
+                resource_type = activity.resource_type or "[unknown type]"
+                resource_group = activity.resource_group or "[no resource group]"
+                subscription = activity.subscription_id or "[no subscription]"
                 self.console.print(
-                    f"[cyan][{time_str}][/cyan] {activity.operation_name} - {activity.resource_name}"
+                    f"[cyan][{time_str}][/cyan] {operation}"
+                )
+                self.console.print(
+                    f"  Resource: {resource} | RG: {resource_group} | Provider: {resource_type}"
+                )
+                self.console.print(
+                    f"  Subscription: {subscription}\n"
                 )
 
         except Exception as e:
@@ -366,7 +377,7 @@ Type 'scan' to detect PIM activations, ask questions, or 'exit' to quit.
         Returns:
             Formatted string like "2 hours ago"
         """
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         diff = now - timestamp
         hours = int(diff.total_seconds() / 3600)
         if hours == 0:
