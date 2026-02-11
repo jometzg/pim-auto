@@ -1,5 +1,5 @@
 """Tests for Log Analytics client module."""
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock
 
 import pytest
@@ -45,16 +45,12 @@ def test_execute_query_success(
     mock_response = Mock()
     mock_response.status = LogsQueryStatus.SUCCESS
 
-    mock_column1 = Mock()
-    mock_column1.name = "TimeGenerated"
-    mock_column2 = Mock()
-    mock_column2.name = "UserEmail"
-
     mock_table = Mock()
-    mock_table.columns = [mock_column1, mock_column2]
+    # Columns are now strings directly, not objects with .name
+    mock_table.columns = ["TimeGenerated", "UserEmail"]
     mock_table.rows = [
-        [datetime(2026, 2, 10, 10, 0, 0), "test@example.com"],
-        [datetime(2026, 2, 10, 11, 0, 0), "user@example.com"],
+        [datetime(2026, 2, 10, 10, 0, 0, tzinfo=timezone.utc), "test@example.com"],
+        [datetime(2026, 2, 10, 11, 0, 0, tzinfo=timezone.utc), "user@example.com"],
     ]
 
     mock_response.tables = [mock_table]
@@ -74,7 +70,7 @@ def test_execute_query_success(
     results = client.execute_query("test query", timespan="P1D")
 
     assert len(results) == 2
-    assert results[0]["TimeGenerated"] == datetime(2026, 2, 10, 10, 0, 0)
+    assert results[0]["TimeGenerated"] == datetime(2026, 2, 10, 10, 0, 0, tzinfo=timezone.utc)
     assert results[0]["UserEmail"] == "test@example.com"
     assert results[1]["UserEmail"] == "user@example.com"
 

@@ -16,6 +16,8 @@ class ActivityEvent:
     resource_type: str
     resource_name: str
     status: str
+    resource_group: str
+    subscription_id: str
 
 
 class ActivityCorrelator:
@@ -32,12 +34,15 @@ class ActivityCorrelator:
         AzureActivity
         | where TimeGenerated between (datetime("{start_time.isoformat()}") .. datetime("{end_time.isoformat()}"))
         | where Caller == "{user_email}"
+        | where ActivityStatusValue == "Success"
         | project
             TimeGenerated,
             OperationName,
-            ResourceType,
+            ResourceProviderValue,
             Resource,
-            Status = ActivityStatus
+            ResourceGroup,
+            SubscriptionId,
+            ActivityStatusValue
         | order by TimeGenerated asc
         """
 
@@ -45,13 +50,17 @@ class ActivityCorrelator:
 
         activities = []
         for row in results:
+            # Debug: log what we're getting from the query
+            logger.debug(f"Activity row: {row}")
             activities.append(
                 ActivityEvent(
                     timestamp=row["TimeGenerated"],
-                    operation_name=row["OperationName"],
-                    resource_type=row.get("ResourceType", "Unknown"),
+                    operation_name=row.get("OperationName", "Unknown"),
+                    resource_type=row.get("ResourceProviderValue", "Unknown"),
                     resource_name=row.get("Resource", "Unknown"),
-                    status=row.get("Status", "Unknown"),
+                    status=row.get("ActivityStatusValue", "Unknown"),
+                    resource_group=row.get("ResourceGroup", "Unknown"),
+                    subscription_id=row.get("SubscriptionId", "Unknown"),
                 )
             )
 
