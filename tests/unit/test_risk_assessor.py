@@ -116,7 +116,10 @@ def test_assess_no_activities(mock_openai: Mock) -> None:
     )
 
     assessor = RiskAssessor(mock_openai)
-    assessment = assessor.assess_alignment(pim_reason="need to troubleshoot issue", activities=[])
+    assessment = assessor.assess_alignment(
+        pim_reason="need to troubleshoot issue",
+        activities=[],
+    )
 
     # Should handle empty activity list gracefully
     assert isinstance(assessment, RiskAssessment)
