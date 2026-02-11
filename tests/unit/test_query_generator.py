@@ -79,9 +79,7 @@ def test_generate_query_exception_handling(mock_openai: Mock) -> None:
 
 def test_generate_query_temperature(mock_openai: Mock) -> None:
     """Test that query generation uses lower temperature."""
-    mock_openai.generate_completion.return_value = (
-        "AuditLogs | where TimeGenerated > ago(24h)"
-    )
+    mock_openai.generate_completion.return_value = "AuditLogs | where TimeGenerated > ago(24h)"
 
     generator = QueryGenerator(mock_openai)
     generator.generate_query("test")
