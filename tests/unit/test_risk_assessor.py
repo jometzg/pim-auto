@@ -138,7 +138,7 @@ def test_assess_alignment_variations(mock_openai: Mock) -> None:
         ("The answer is ALIGNED.", AlignmentLevel.ALIGNED),
         (
             "PARTIALLY ALIGNED with some concerns", 
-            AlignmentLevel.PARTIALLY_ALIGNED
+            AlignmentLevel.PARTIALLY_ALIGNED,
         ),
         ("partially_aligned", AlignmentLevel.PARTIALLY_ALIGNED),
     ]
