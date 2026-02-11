@@ -1,6 +1,8 @@
 """Main entry point for PIM Auto application."""
 import logging
 import sys
+from pathlib import Path
+from typing import Optional
 
 import click
 
@@ -8,19 +10,40 @@ from pim_auto.azure.auth import get_azure_credential
 from pim_auto.azure.log_analytics import LogAnalyticsClient
 from pim_auto.azure.openai_client import OpenAIClient
 from pim_auto.config import Config
-from pim_auto.core.pim_detector import PIMDetector
+from pim_auto.interfaces.batch_runner import BatchRunner
+from pim_auto.interfaces.interactive_cli import InteractiveCLI
 
 logger = logging.getLogger(__name__)
 
 
 @click.command()
 @click.option(
+    "--mode",
+    type=click.Choice(["interactive", "batch"], case_sensitive=False),
+    default="interactive",
+    help="Run mode: interactive (default) or batch",
+)
+@click.option(
     "--log-level",
     type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR"], case_sensitive=False),
     default="INFO",
     help="Set the logging level",
 )
-def main(log_level: str) -> int:
+@click.option(
+    "--output",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Output file path for batch mode report",
+)
+@click.option(
+    "--hours",
+    type=int,
+    default=None,
+    help="Number of hours to scan (overrides config default)",
+)
+def main(
+    mode: str, log_level: str, output: Optional[Path], hours: Optional[int]
+) -> int:
     """Main application entry point."""
     # Configure logging with specified level
     logging.basicConfig(
@@ -43,7 +66,7 @@ def main(log_level: str) -> int:
             workspace_id=config.log_analytics_workspace_id, credential=credential
         )
 
-        _openai_client = OpenAIClient(
+        openai_client = OpenAIClient(
             endpoint=config.azure_openai_endpoint,
             deployment=config.azure_openai_deployment,
             api_version=config.azure_openai_api_version,
@@ -52,20 +75,15 @@ def main(log_level: str) -> int:
 
         logger.info("Azure clients initialized successfully")
 
-        # Basic functionality test: detect PIM activations
-        logger.info(
-            f"Scanning for PIM activations (last {config.default_scan_hours} hours)..."
-        )
-        pim_detector = PIMDetector(log_analytics)
-        activations = pim_detector.detect_activations(hours=config.default_scan_hours)
-
-        logger.info(f"Found {len(activations)} PIM activations")
-        for activation in activations:
-            logger.info(
-                f"  - {activation.user_email}: {activation.role_name} (Reason: {activation.activation_reason})"
-            )
-
-        return 0
+        # Route to appropriate interface
+        if mode.lower() == "batch":
+            logger.info("Running in batch mode")
+            runner = BatchRunner(log_analytics, openai_client, config)
+            return runner.run(hours=hours, output_path=output)
+        else:
+            logger.info("Running in interactive mode")
+            cli = InteractiveCLI(log_analytics, openai_client, config)
+            return cli.run()
 
     except Exception as e:
         logger.error(f"Application error: {e}", exc_info=True)
