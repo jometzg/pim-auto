@@ -14,8 +14,8 @@ This document provides the **financial model** for the PIM Auto migration, inclu
 
 | Category | Value | Notes |
 |----------|-------|-------|
-| **One-Time Migration Cost** | $52,500 - $78,750 | Implementation + deployment |
-| **Annual Operational Cost** | $14,400 - $28,800 | Azure services + team support |
+| **One-Time Migration Cost** | $52,300 - $86,650 | Implementation + deployment |
+| **Annual Operational Cost** | $18,712 - $26,112 | Azure services + team support |
 | **AI Productivity Gain** | 42% time savings | Implementation + testing acceleration |
 | **ROI Breakeven** | 6-9 months | Assumes 50% FTE freed for other work |
 | **3-Year NPV** | $89,100 - $178,200 | Net present value of time savings |
