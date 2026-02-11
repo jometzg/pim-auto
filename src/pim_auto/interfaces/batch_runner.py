@@ -1,6 +1,6 @@
 """Batch mode runner for automated PIM activity scanning."""
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -8,7 +8,7 @@ from pim_auto.azure.log_analytics import LogAnalyticsClient
 from pim_auto.azure.openai_client import OpenAIClient
 from pim_auto.config import Config
 from pim_auto.core.activity_correlator import ActivityCorrelator, ActivityEvent
-from pim_auto.core.pim_detector import PIMActivation, PIMDetector
+from pim_auto.core.pim_detector import PIMDetector
 from pim_auto.core.risk_assessor import RiskAssessment, RiskAssessor
 from pim_auto.reporting.markdown_generator import MarkdownGenerator
 

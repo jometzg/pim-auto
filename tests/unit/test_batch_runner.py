@@ -1,7 +1,7 @@
 """Unit tests for batch runner."""
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -145,7 +145,7 @@ def test_run_with_custom_hours(batch_runner, sample_activations):
 def test_run_with_output_file(batch_runner, sample_activations, tmp_path):
     """Test running with output file."""
     output_path = tmp_path / "report.md"
-    
+
     batch_runner.pim_detector.detect_activations = Mock(return_value=sample_activations)
     batch_runner.activity_correlator.get_user_activities = Mock(return_value=[])
     batch_runner.risk_assessor.assess_alignment = Mock(
@@ -199,7 +199,7 @@ def test_run_continues_on_assessment_failure(
 
     batch_runner.pim_detector.detect_activations = Mock(return_value=activations)
     batch_runner.activity_correlator.get_user_activities = Mock(return_value=sample_activities)
-    
+
     # First assessment fails, second succeeds
     batch_runner.risk_assessor.assess_alignment = Mock(
         side_effect=[
@@ -220,7 +220,7 @@ def test_run_continues_on_assessment_failure(
 def test_generate_empty_report(batch_runner):
     """Test generating empty report."""
     report = batch_runner._generate_empty_report()
-    
+
     assert "# PIM Activity Audit Report" in report
     assert "No PIM activations found" in report
 
@@ -228,10 +228,10 @@ def test_generate_empty_report(batch_runner):
 def test_output_report_to_stdout(batch_runner):
     """Test outputting report to stdout."""
     report = "# Test Report"
-    
+
     with patch("builtins.print") as mock_print:
         batch_runner._output_report(report, None)
-    
+
     # Verify print was called
     mock_print.assert_called()
     # Check that report content was printed
@@ -244,7 +244,7 @@ def test_output_report_to_file(batch_runner):
     """Test outputting report to file (file creation is handled by markdown_generator)."""
     report = "# Test Report"
     output_path = Path("/tmp/test_report.md")
-    
+
     # Just verify the method completes without error
     # Actual file writing is done in markdown_generator.generate_report
     batch_runner._output_report(report, output_path)

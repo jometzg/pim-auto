@@ -144,9 +144,9 @@ def test_format_time_ago_minutes(cli):
 def test_handle_scan_with_activations(cli, sample_activations):
     """Test handling scan command with activations found."""
     cli.pim_detector.detect_activations = Mock(return_value=sample_activations)
-    
+
     cli._handle_scan()
-    
+
     assert cli.activations == sample_activations
     cli.pim_detector.detect_activations.assert_called_once_with(hours=24)
 
@@ -154,16 +154,16 @@ def test_handle_scan_with_activations(cli, sample_activations):
 def test_handle_scan_no_activations(cli):
     """Test handling scan command with no activations."""
     cli.pim_detector.detect_activations = Mock(return_value=[])
-    
+
     cli._handle_scan()
-    
+
     assert cli.activations == []
 
 
 def test_handle_scan_exception(cli):
     """Test handling scan command with exception."""
     cli.pim_detector.detect_activations = Mock(side_effect=Exception("Test error"))
-    
+
     # Should not raise, just log error
     cli._handle_scan()
 
@@ -185,9 +185,9 @@ def test_handle_activity_query_success(cli, sample_activations, sample_activitie
     """Test successful activity query."""
     cli.activations = sample_activations
     cli.activity_correlator.get_user_activities = Mock(return_value=sample_activities)
-    
+
     cli._handle_activity_query("What did user1@example.com do?")
-    
+
     cli.activity_correlator.get_user_activities.assert_called_once()
 
 
@@ -204,9 +204,9 @@ def test_handle_alignment_query_with_context(cli, sample_activations, sample_act
     cli.current_user = "user1@example.com"
     cli.activity_correlator.get_user_activities = Mock(return_value=sample_activities)
     cli.risk_assessor.assess_alignment = Mock(return_value=sample_assessment)
-    
+
     cli._handle_alignment_query("do their activities align?")
-    
+
     cli.activity_correlator.get_user_activities.assert_called_once()
     cli.risk_assessor.assess_alignment.assert_called_once()
 
@@ -216,9 +216,9 @@ def test_handle_alignment_query_explicit_user(cli, sample_activations, sample_ac
     cli.activations = sample_activations
     cli.activity_correlator.get_user_activities = Mock(return_value=sample_activities)
     cli.risk_assessor.assess_alignment = Mock(return_value=sample_assessment)
-    
+
     cli._handle_alignment_query("assess user1@example.com")
-    
+
     cli.risk_assessor.assess_alignment.assert_called_once()
 
 
@@ -227,9 +227,9 @@ def test_handle_assess_all_users(cli, sample_activations, sample_activities, sam
     cli.activations = sample_activations
     cli.activity_correlator.get_user_activities = Mock(return_value=sample_activities)
     cli.risk_assessor.assess_alignment = Mock(return_value=sample_assessment)
-    
+
     cli._assess_all_users()
-    
+
     # Should assess each activation
     assert cli.activity_correlator.get_user_activities.call_count == len(sample_activations)
     assert cli.risk_assessor.assess_alignment.call_count == len(sample_activations)
@@ -260,12 +260,12 @@ def test_handle_assess_continues_on_error(cli):
             duration_hours=24,
         ),
     ]
-    
+
     cli.activations = activations
     cli.activity_correlator.get_user_activities = Mock(
         side_effect=[Exception("Error"), []]
     )
-    
+
     # Should not raise, continue processing
     cli._assess_all_users()
 
@@ -275,7 +275,7 @@ def test_run_exit_command(cli):
     with patch.object(cli.console, "print"):
         with patch("rich.prompt.Prompt.ask", side_effect=["exit"]):
             result = cli.run()
-    
+
     assert result == 0
 
 
@@ -284,7 +284,7 @@ def test_run_keyboard_interrupt(cli):
     with patch.object(cli.console, "print"):
         with patch("rich.prompt.Prompt.ask", side_effect=KeyboardInterrupt()):
             result = cli.run()
-    
+
     assert result == 0
 
 
@@ -293,9 +293,9 @@ def test_handle_assess_command_with_user(cli, sample_activations, sample_activit
     cli.activations = sample_activations
     cli.activity_correlator.get_user_activities = Mock(return_value=sample_activities)
     cli.risk_assessor.assess_alignment = Mock(return_value=sample_assessment)
-    
+
     cli._handle_assess("assess user1@example.com")
-    
+
     cli.risk_assessor.assess_alignment.assert_called_once()
 
 
@@ -304,7 +304,7 @@ def test_handle_assess_command_all(cli, sample_activations, sample_activities, s
     cli.activations = sample_activations
     cli.activity_correlator.get_user_activities = Mock(return_value=sample_activities)
     cli.risk_assessor.assess_alignment = Mock(return_value=sample_assessment)
-    
+
     cli._handle_assess("assess")
-    
+
     assert cli.risk_assessor.assess_alignment.call_count == len(sample_activations)

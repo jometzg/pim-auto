@@ -1,6 +1,5 @@
 """Interactive CLI for PIM activity audit."""
 import logging
-import sys
 from datetime import datetime
 from typing import Optional
 

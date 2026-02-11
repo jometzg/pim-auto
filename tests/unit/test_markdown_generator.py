@@ -1,6 +1,5 @@
 """Unit tests for markdown report generator."""
 from datetime import datetime
-from pathlib import Path
 
 import pytest
 
