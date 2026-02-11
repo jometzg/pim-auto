@@ -1,4 +1,5 @@
 """Structured JSON logging configuration."""
+
 import logging
 import sys
 from typing import Optional
@@ -63,6 +64,4 @@ class StructuredLogger:
             logging.getLogger("urllib3").setLevel(logging.WARNING)
             logging.getLogger("opencensus").setLevel(logging.WARNING)
 
-        logging.info(
-            f"Structured logging configured: level={log_level}, json_format={json_format}"
-        )
+        logging.info(f"Structured logging configured: level={log_level}, json_format={json_format}")

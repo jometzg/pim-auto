@@ -1,4 +1,5 @@
 """Azure authentication management."""
+
 from azure.identity import DefaultAzureCredential
 
 

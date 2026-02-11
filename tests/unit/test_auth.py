@@ -1,4 +1,5 @@
 """Tests for Azure authentication module."""
+
 from unittest.mock import MagicMock, patch
 
 from azure.identity import DefaultAzureCredential

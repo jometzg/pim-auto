@@ -1,4 +1,5 @@
 """Main entry point for PIM Auto application."""
+
 import logging
 import sys
 from pathlib import Path
@@ -62,7 +63,7 @@ def main(
         # Load and validate configuration
         config = Config.from_environment()
         config.validate()
-        
+
         # Configure structured logging
         monitor = None
         if config.enable_app_insights and config.app_insights_connection_string:
@@ -73,14 +74,14 @@ def main(
             app_insights_handler = monitor.get_log_handler()
         else:
             app_insights_handler = None
-        
+
         StructuredLogger.setup(
             log_level=log_level,
             json_format=config.structured_logging,
             include_app_insights=config.enable_app_insights,
             app_insights_handler=app_insights_handler,
         )
-        
+
         logger.info("Loading configuration...")
         logger.info("Configuration loaded successfully")
 
@@ -100,7 +101,7 @@ def main(
         )
 
         logger.info("Azure clients initialized successfully")
-        
+
         # Initialize health check
         health_check = HealthCheck(
             workspace_id=config.log_analytics_workspace_id,
@@ -113,6 +114,7 @@ def main(
             logger.info("Running health check")
             health_result = health_check.check_health(detailed=detailed_health)
             import json
+
             print(json.dumps(health_result, indent=2))
             return 0 if health_result["status"] in ["healthy", "degraded"] else 1
         elif mode.lower() == "batch":

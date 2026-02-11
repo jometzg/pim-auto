@@ -1,4 +1,5 @@
 """Tests for risk assessor module."""
+
 from datetime import datetime, timezone
 from unittest.mock import Mock
 
@@ -100,9 +101,7 @@ def test_assess_unknown(mock_openai: Mock) -> None:
     assessor = RiskAssessor(mock_openai)
     activities = []
 
-    assessment = assessor.assess_alignment(
-        pim_reason="vague reason", activities=activities
-    )
+    assessment = assessor.assess_alignment(pim_reason="vague reason", activities=activities)
 
     assert assessment.level == AlignmentLevel.UNKNOWN
 
@@ -114,9 +113,7 @@ def test_assess_no_activities(mock_openai: Mock) -> None:
     )
 
     assessor = RiskAssessor(mock_openai)
-    assessment = assessor.assess_alignment(
-        pim_reason="need to troubleshoot issue", activities=[]
-    )
+    assessment = assessor.assess_alignment(pim_reason="need to troubleshoot issue", activities=[])
 
     # Should handle empty activity list gracefully
     assert isinstance(assessment, RiskAssessment)
@@ -141,9 +138,7 @@ def test_assess_alignment_variations(mock_openai: Mock) -> None:
 
 def test_risk_assessment_dataclass() -> None:
     """Test RiskAssessment dataclass."""
-    assessment = RiskAssessment(
-        level=AlignmentLevel.ALIGNED, explanation="Test explanation"
-    )
+    assessment = RiskAssessment(level=AlignmentLevel.ALIGNED, explanation="Test explanation")
 
     assert assessment.level == AlignmentLevel.ALIGNED
     assert assessment.explanation == "Test explanation"

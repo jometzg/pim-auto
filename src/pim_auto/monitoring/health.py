@@ -1,4 +1,5 @@
 """Health check endpoint for monitoring and orchestration."""
+
 import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -48,11 +49,9 @@ class HealthCheck:
 
         if detailed:
             health_status["components"] = self._check_components()
-            
+
             # Overall status is unhealthy if any component is unhealthy
-            component_statuses = [
-                comp["status"] for comp in health_status["components"].values()
-            ]
+            component_statuses = [comp["status"] for comp in health_status["components"].values()]
             if "unhealthy" in component_statuses:
                 health_status["status"] = "unhealthy"
             elif "degraded" in component_statuses:
@@ -85,9 +84,7 @@ class HealthCheck:
         try:
             # Attempt to get a token (doesn't actually call service)
             # This validates the credential is properly configured
-            token = self.credential.get_token(
-                "https://api.loganalytics.io/.default"
-            )
+            token = self.credential.get_token("https://api.loganalytics.io/.default")
             if token and token.token:
                 return {
                     "status": "healthy",

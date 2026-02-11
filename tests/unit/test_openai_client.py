@@ -1,4 +1,5 @@
 """Tests for Azure OpenAI client module."""
+
 from unittest.mock import Mock
 
 import pytest
@@ -12,9 +13,7 @@ def mock_credential() -> Mock:
     return Mock()
 
 
-def test_openai_client_init(
-    mock_credential: Mock, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_openai_client_init(mock_credential: Mock, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test OpenAI client initialization."""
     mock_token_provider = Mock()
     mock_get_token_provider = Mock(return_value=mock_token_provider)
@@ -24,9 +23,7 @@ def test_openai_client_init(
     )
 
     mock_azure_openai = Mock()
-    monkeypatch.setattr(
-        "src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai
-    )
+    monkeypatch.setattr("src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai)
 
     client = OpenAIClient(
         endpoint="https://test.openai.azure.com",
@@ -67,9 +64,7 @@ def test_generate_completion_success(
     )
 
     mock_azure_openai = Mock(return_value=mock_client_instance)
-    monkeypatch.setattr(
-        "src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai
-    )
+    monkeypatch.setattr("src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai)
 
     client = OpenAIClient(
         endpoint="https://test.openai.azure.com",
@@ -102,9 +97,7 @@ def test_generate_completion_exception(
     )
 
     mock_azure_openai = Mock(return_value=mock_client_instance)
-    monkeypatch.setattr(
-        "src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai
-    )
+    monkeypatch.setattr("src.pim_auto.azure.openai_client.AzureOpenAI", mock_azure_openai)
 
     client = OpenAIClient(
         endpoint="https://test.openai.azure.com",

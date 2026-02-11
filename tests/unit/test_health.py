@@ -1,4 +1,5 @@
 """Tests for health check functionality."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -139,9 +140,7 @@ class TestHealthCheck:
     def test_is_ready_when_degraded(self, health_check):
         """Test is_ready returns True when degraded (still operational)."""
         # Make one component degraded
-        health_check.credential.get_token.return_value = AccessToken(
-            token="", expires_on=0
-        )
+        health_check.credential.get_token.return_value = AccessToken(token="", expires_on=0)
 
         # Should still be ready (degraded is acceptable)
         result = health_check.is_ready()

@@ -1,4 +1,5 @@
 """Tests for PIM detector module."""
+
 from datetime import datetime
 from unittest.mock import MagicMock, Mock
 

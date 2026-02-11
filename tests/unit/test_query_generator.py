@@ -1,4 +1,5 @@
 """Tests for query generator module."""
+
 from unittest.mock import Mock
 
 import pytest

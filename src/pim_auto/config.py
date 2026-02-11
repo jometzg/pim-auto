@@ -1,4 +1,5 @@
 """Configuration management for PIM Auto."""
+
 import os
 from dataclasses import dataclass
 from typing import Optional
@@ -19,7 +20,7 @@ class Config:
     default_scan_hours: int = 24
     log_level: str = "INFO"
     batch_output_path: Optional[str] = None
-    
+
     # Monitoring settings
     enable_app_insights: bool = True
     app_insights_connection_string: Optional[str] = None
@@ -42,9 +43,7 @@ class Config:
             azure_openai_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", ""),
             azure_openai_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT", ""),
             log_analytics_workspace_id=os.getenv("LOG_ANALYTICS_WORKSPACE_ID", ""),
-            azure_openai_api_version=os.getenv(
-                "AZURE_OPENAI_API_VERSION", "2024-02-15-preview"
-            ),
+            azure_openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview"),
             log_analytics_region=os.getenv("LOG_ANALYTICS_REGION"),
             default_scan_hours=int(os.getenv("DEFAULT_SCAN_HOURS", "24")),
             log_level=os.getenv("LOG_LEVEL", "INFO"),

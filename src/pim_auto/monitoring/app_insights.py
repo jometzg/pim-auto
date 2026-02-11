@@ -1,4 +1,5 @@
 """Application Insights integration for monitoring and telemetry."""
+
 import logging
 import os
 from typing import Any, Dict, Optional
@@ -213,7 +214,9 @@ class ApplicationInsightsMonitor:
             logger.error(f"Failed to create log handler: {e}")
             return None
 
-    def track_exception(self, exception: Exception, properties: Optional[Dict[str, Any]] = None) -> None:
+    def track_exception(
+        self, exception: Exception, properties: Optional[Dict[str, Any]] = None
+    ) -> None:
         """
         Track an exception with optional properties.
 

@@ -1,4 +1,5 @@
 """PIM activation detection module."""
+
 import logging
 from dataclasses import dataclass
 from datetime import datetime
@@ -39,9 +40,7 @@ class PIMDetector:
         | order by TimeGenerated desc
         """
 
-        results = self.log_analytics_client.execute_query(
-            query=query, timespan=f"PT{hours}H"
-        )
+        results = self.log_analytics_client.execute_query(query=query, timespan=f"PT{hours}H")
 
         activations = []
         for row in results:

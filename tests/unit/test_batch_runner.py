@@ -1,4 +1,5 @@
 """Unit tests for batch runner."""
+
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -78,7 +79,9 @@ def sample_assessment():
     )
 
 
-def test_batch_runner_initialization(batch_runner, mock_log_analytics, mock_openai_client, mock_config):
+def test_batch_runner_initialization(
+    batch_runner, mock_log_analytics, mock_openai_client, mock_config
+):
     """Test batch runner initialization."""
     assert batch_runner.log_analytics == mock_log_analytics
     assert batch_runner.openai_client == mock_openai_client
@@ -167,9 +170,7 @@ def test_run_with_output_file(batch_runner, sample_activations, tmp_path):
 def test_run_with_exception(batch_runner):
     """Test error handling when exception occurs."""
     # Mock exception during detection
-    batch_runner.pim_detector.detect_activations = Mock(
-        side_effect=Exception("Test error")
-    )
+    batch_runner.pim_detector.detect_activations = Mock(side_effect=Exception("Test error"))
 
     # Run batch mode
     result = batch_runner.run()
@@ -178,9 +179,7 @@ def test_run_with_exception(batch_runner):
     assert result == 1
 
 
-def test_run_continues_on_assessment_failure(
-    batch_runner, sample_activities
-):
+def test_run_continues_on_assessment_failure(batch_runner, sample_activities):
     """Test that batch mode continues even if one assessment fails."""
     activations = [
         PIMActivation(

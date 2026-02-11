@@ -1,4 +1,5 @@
 """Markdown report generator for PIM Auto application."""
+
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,9 +40,7 @@ class MarkdownGenerator:
             self._generate_header(),
             self._generate_summary(activations, assessments_by_user),
             self._generate_activations_table(activations),
-            self._generate_detailed_analysis(
-                activations, activities_by_user, assessments_by_user
-            ),
+            self._generate_detailed_analysis(activations, activities_by_user, assessments_by_user),
         ]
 
         report = "\n\n".join(sections)
@@ -65,26 +64,14 @@ class MarkdownGenerator:
     ) -> str:
         """Generate executive summary."""
         total = len(activations)
-        aligned = sum(
-            1
-            for a in assessments_by_user.values()
-            if a.level == AlignmentLevel.ALIGNED
-        )
+        aligned = sum(1 for a in assessments_by_user.values() if a.level == AlignmentLevel.ALIGNED)
         partially_aligned = sum(
-            1
-            for a in assessments_by_user.values()
-            if a.level == AlignmentLevel.PARTIALLY_ALIGNED
+            1 for a in assessments_by_user.values() if a.level == AlignmentLevel.PARTIALLY_ALIGNED
         )
         not_aligned = sum(
-            1
-            for a in assessments_by_user.values()
-            if a.level == AlignmentLevel.NOT_ALIGNED
+            1 for a in assessments_by_user.values() if a.level == AlignmentLevel.NOT_ALIGNED
         )
-        unknown = sum(
-            1
-            for a in assessments_by_user.values()
-            if a.level == AlignmentLevel.UNKNOWN
-        )
+        unknown = sum(1 for a in assessments_by_user.values() if a.level == AlignmentLevel.UNKNOWN)
 
         return f"""## Executive Summary
 
@@ -202,7 +189,7 @@ class MarkdownGenerator:
             hours_ago = int(time_diff.total_seconds() / 3600)
 
             lines.append(
-                f"{i}. {activation.user_email} - Reason: \"{activation.activation_reason}\" "
+                f'{i}. {activation.user_email} - Reason: "{activation.activation_reason}" '
                 f"(activated {hours_ago} hours ago)"
             )
 

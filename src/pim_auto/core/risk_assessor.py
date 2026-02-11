@@ -1,4 +1,5 @@
 """Risk assessment module using Azure OpenAI."""
+
 import logging
 from enum import Enum
 from typing import Any, List
@@ -29,9 +30,7 @@ class RiskAssessor:
     def __init__(self, openai_client: Any):
         self.openai_client = openai_client
 
-    def assess_alignment(
-        self, pim_reason: str, activities: List[Any]
-    ) -> RiskAssessment:
+    def assess_alignment(self, pim_reason: str, activities: List[Any]) -> RiskAssessment:
         """Assess if activities align with PIM activation reason."""
         activities_text = "\n".join(
             [
@@ -68,10 +67,7 @@ class RiskAssessor:
         response_upper = response.upper()
         if "NOT_ALIGNED" in response_upper or "NOT ALIGNED" in response_upper:
             level = AlignmentLevel.NOT_ALIGNED
-        elif (
-            "PARTIALLY_ALIGNED" in response_upper
-            or "PARTIALLY ALIGNED" in response_upper
-        ):
+        elif "PARTIALLY_ALIGNED" in response_upper or "PARTIALLY ALIGNED" in response_upper:
             level = AlignmentLevel.PARTIALLY_ALIGNED
         elif "ALIGNED" in response_upper:
             level = AlignmentLevel.ALIGNED

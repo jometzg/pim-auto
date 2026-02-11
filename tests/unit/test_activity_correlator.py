@@ -1,4 +1,5 @@
 """Tests for activity correlator module."""
+
 from datetime import datetime, timezone
 from unittest.mock import Mock
 

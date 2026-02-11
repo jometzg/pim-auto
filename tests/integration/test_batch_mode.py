@@ -1,4 +1,5 @@
 """Integration tests for batch mode."""
+
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -102,9 +103,7 @@ def test_batch_mode_end_to_end(mock_env, sample_data, tmp_path):
     def mock_get_activities(user_email, start_time, end_time):
         return activities_by_user.get(user_email, [])
 
-    runner.activity_correlator.get_user_activities = Mock(
-        side_effect=mock_get_activities
-    )
+    runner.activity_correlator.get_user_activities = Mock(side_effect=mock_get_activities)
 
     # Mock risk assessor
     assessment_calls = []
@@ -116,7 +115,9 @@ def test_batch_mode_end_to_end(mock_env, sample_data, tmp_path):
                 user_email = email
                 break
         assessment_calls.append((pim_reason, activities))
-        return assessments_by_user.get(user_email, RiskAssessment(AlignmentLevel.UNKNOWN, "Unknown"))
+        return assessments_by_user.get(
+            user_email, RiskAssessment(AlignmentLevel.UNKNOWN, "Unknown")
+        )
 
     runner.risk_assessor.assess_alignment = Mock(side_effect=mock_assess)
 

@@ -1,4 +1,5 @@
 """Unit tests for markdown report generator."""
+
 from datetime import datetime, timezone
 
 import pytest
